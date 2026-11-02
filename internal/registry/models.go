@@ -34,11 +34,19 @@ type Server struct {
 
 // Snapshot represents a public pre-computed view of active servers.
 type Snapshot struct {
-	GeneratedAt   time.Time `json:"generatedAt"`
-	TotalServers  int       `json:"totalServers"`
-	TotalPlayers  int       `json:"totalPlayers"`
-	ActiveGames   int       `json:"activeGames"`
-	Servers       []Server  `json:"servers"`
+	GeneratedAt  time.Time `json:"generatedAt"`
+	TotalServers int       `json:"totalServers"`
+	TotalPlayers int       `json:"totalPlayers"`
+	ActiveGames  int       `json:"activeGames"`
+	Servers      []Server  `json:"servers"`
+}
+
+// DatabaseRecord represents the top-level structure of the JSON database on disk.
+type DatabaseRecord struct {
+	SavedAt     time.Time `json:"savedAt"`
+	Version     int       `json:"version"`
+	ServerCount int       `json:"serverCount"`
+	Servers     []*Server `json:"servers"`
 }
 
 // ClassifyKingpinMode detects whether a server is Bagman, CTF, DM, or Team.

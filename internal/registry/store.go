@@ -1,8 +1,13 @@
 package registry
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"log"
 	"net"
+	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -16,6 +21,7 @@ type Store struct {
 	servers      map[string]*Server
 	snapshot     atomic.Pointer[Snapshot]
 	allowPrivate bool
+	dirty        atomic.Bool
 }
 
 // NewStore creates a new server store.
@@ -77,6 +83,8 @@ func (s *Store) RegisterHeartbeat(ip string, queryPort int, gamename string) (*S
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	s.dirty.Store(true)
+
 	srv, exists := s.servers[key]
 	if !exists {
 		srv = &Server{
@@ -122,6 +130,8 @@ func (s *Store) UpdateProbeResult(
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	s.dirty.Store(true)
+
 	srv, exists := s.servers[key]
 	if !exists {
 		return
@@ -165,6 +175,7 @@ func (s *Store) MarkOffline(ip string, queryPort int) {
 	defer s.mu.Unlock()
 	if srv, exists := s.servers[key]; exists {
 		srv.Verified = false
+		s.dirty.Store(true)
 	}
 }
 
@@ -208,6 +219,9 @@ func (s *Store) Prune(ttl time.Duration) int {
 			delete(s.servers, k)
 			pruned++
 		}
+	}
+	if pruned > 0 {
+		s.dirty.Store(true)
 	}
 	return pruned
 }
@@ -289,4 +303,150 @@ func (s *Store) TotalCount() int {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return len(s.servers)
+}
+
+// IsDirty returns whether the store has pending changes not yet written to disk.
+func (s *Store) IsDirty() bool {
+	return s.dirty.Load()
+}
+
+// SetDirty explicitly updates the dirty state.
+func (s *Store) SetDirty(dirty bool) {
+	s.dirty.Store(dirty)
+}
+
+// SaveToFile serializes the current server registry to an atomic JSON file.
+func (s *Store) SaveToFile(path string) error {
+	if path == "" {
+		return nil
+	}
+
+	s.mu.RLock()
+	servers := make([]*Server, 0, len(s.servers))
+	for _, srv := range s.servers {
+		cp := *srv
+		if srv.Roster != nil {
+			cp.Roster = make([]Player, len(srv.Roster))
+			copy(cp.Roster, srv.Roster)
+		}
+		if srv.CVars != nil {
+			cp.CVars = make(map[string]string, len(srv.CVars))
+			for k, v := range srv.CVars {
+				cp.CVars[k] = v
+			}
+		}
+		servers = append(servers, &cp)
+	}
+	s.mu.RUnlock()
+
+	rec := DatabaseRecord{
+		SavedAt:     time.Now().UTC(),
+		Version:     1,
+		ServerCount: len(servers),
+		Servers:     servers,
+	}
+
+	data, err := json.MarshalIndent(rec, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal database json: %w", err)
+	}
+
+	dir := filepath.Dir(path)
+	if dir != "" && dir != "." {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return fmt.Errorf("failed to create db directory %s: %w", dir, err)
+		}
+	}
+
+	// Atomic write: write to unique temporary file first, then atomic rename
+	tmpFile := fmt.Sprintf("%s.tmp.%d", path, time.Now().UnixNano())
+	if err := os.WriteFile(tmpFile, data, 0644); err != nil {
+		return fmt.Errorf("failed to write temporary db file %s: %w", tmpFile, err)
+	}
+
+	if err := os.Rename(tmpFile, path); err != nil {
+		os.Remove(tmpFile)
+		return fmt.Errorf("failed to atomically rename %s to %s: %w", tmpFile, path, err)
+	}
+
+	s.dirty.Store(false)
+	return nil
+}
+
+// LoadFromFile reads a JSON database file and restores all servers into the registry.
+func (s *Store) LoadFromFile(path string) (int, error) {
+	if path == "" {
+		return 0, nil
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return 0, nil
+		}
+		return 0, fmt.Errorf("failed to read db file %s: %w", path, err)
+	}
+
+	var servers []*Server
+
+	// 1. Try structured DatabaseRecord first
+	var rec DatabaseRecord
+	if errRec := json.Unmarshal(data, &rec); errRec == nil && len(rec.Servers) > 0 {
+		servers = rec.Servers
+	} else {
+		// 2. Fallback to raw []*Server array
+		var rawServers []*Server
+		if errRaw := json.Unmarshal(data, &rawServers); errRaw == nil && len(rawServers) > 0 {
+			servers = rawServers
+		} else {
+			return 0, fmt.Errorf("invalid json database format in %s", path)
+		}
+	}
+
+	s.mu.Lock()
+	loadedCount := 0
+	for _, srv := range servers {
+		if srv == nil || srv.IP == "" || srv.QueryPort <= 0 {
+			continue
+		}
+		if srv.ID == "" {
+			srv.ID = fmt.Sprintf("%s:%d", srv.IP, srv.QueryPort)
+		}
+		if srv.CVars == nil {
+			srv.CVars = make(map[string]string)
+		}
+		if srv.Roster == nil {
+			srv.Roster = []Player{}
+		}
+		s.servers[srv.ID] = srv
+		loadedCount++
+	}
+	s.mu.Unlock()
+
+	s.RebuildSnapshot()
+	s.dirty.Store(false)
+
+	return loadedCount, nil
+}
+
+// StartAutoSave periodically flushes modified store data to disk in the background.
+func (s *Store) StartAutoSave(ctx context.Context, interval time.Duration, path string) {
+	if path == "" || interval <= 0 {
+		return
+	}
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if s.dirty.Load() {
+				if err := s.SaveToFile(path); err != nil {
+					log.Printf("[Store] Auto-save error: %v", err)
+				}
+			}
+		}
+	}
 }

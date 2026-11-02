@@ -55,6 +55,7 @@ func main() {
 	apiAddr := getEnv("API_ADDR", "0.0.0.0:8085")
 	allowPrivate := getEnvBool("ALLOW_PRIVATE", false)
 	seedURLsRaw := getEnv("SEED_URLS", "https://raw.githubusercontent.com/shavargo/retro-server-mirror/main/servers.json")
+	dbFile := getEnv("DB_FILE", "data/servers.json")
 	probeIntervalSec := getEnvInt("PROBE_INTERVAL_SECONDS", 180) // Gentler default: 3 minutes (180s) prevents Anti-DDoS rate-limits
 	proberWorkers := getEnvInt("PROBER_WORKERS", 16)             // Conservative concurrency prevents UDP packet bursts
 	probeTimeoutMs := getEnvInt("PROBE_TIMEOUT_MS", 2000)
@@ -67,8 +68,18 @@ func main() {
 	}
 	log.Printf("Loaded %d games from GameSpy catalog", gameReg.TotalCount())
 
-	// 2. Initialize In-Memory Store
+	// 2. Initialize In-Memory Store & Recall from JSON DB
 	store := registry.NewStore(allowPrivate)
+	if dbFile != "" {
+		loaded, err := store.LoadFromFile(dbFile)
+		if err != nil {
+			log.Printf("[Store] Warning loading database from %s: %v", dbFile, err)
+		} else if loaded > 0 {
+			log.Printf("[Store] Successfully restored %d servers from JSON DB (%s)", loaded, dbFile)
+		} else {
+			log.Printf("[Store] No previous JSON DB found at %s (starting fresh)", dbFile)
+		}
+	}
 
 	// 3. Initialize Background Health Prober
 	log.Printf("[Prober] Initialized: interval=%ds, workers=%d, timeout=%dms, pacing=%dms",
@@ -92,10 +103,17 @@ func main() {
 		seedURLs = strings.Split(seedURLsRaw, ",")
 	}
 	serverSeeder := seeder.NewSeeder(store, gameReg, seedURLs, 10*time.Minute)
-	// When mirror seeding finishes or updates, immediately trigger a probe pass
+	// When mirror seeding finishes or updates, immediately trigger a probe pass and persist DB
 	serverSeeder.SetOnSyncComplete(func() {
 		log.Printf("[Seeder] Mirror sync complete (%d total registered servers). Triggering health probes...", store.TotalCount())
 		prober.Trigger(ctx)
+		if dbFile != "" {
+			if err := store.SaveToFile(dbFile); err != nil {
+				log.Printf("[Store] Failed to save DB after seeder sync: %v", err)
+			} else {
+				log.Printf("[Store] Persisted %d servers to JSON DB", store.TotalCount())
+			}
+		}
 	})
 
 	// 5. Initialize Listeners
@@ -108,9 +126,12 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
-	// Start Prober & Seeder
+	// Start Prober, Seeder & AutoSave
 	go prober.Start(ctx)
 	go serverSeeder.Start(ctx)
+	if dbFile != "" {
+		go store.StartAutoSave(ctx, 30*time.Second, dbFile)
+	}
 
 	// Start Listeners
 	go func() {
@@ -142,6 +163,16 @@ func main() {
 	<-sigChan
 	log.Println("Shutdown signal received, draining connections...")
 	cancel()
+
+	// Persist database before exit
+	if dbFile != "" {
+		log.Printf("[Store] Persisting JSON database to %s...", dbFile)
+		if err := store.SaveToFile(dbFile); err != nil {
+			log.Printf("[Store] Error saving database on exit: %v", err)
+		} else {
+			log.Printf("[Store] Database successfully saved (%d servers preserved).", store.TotalCount())
+		}
+	}
 
 	time.Sleep(1 * time.Second)
 	log.Println("Master server terminated cleanly.")

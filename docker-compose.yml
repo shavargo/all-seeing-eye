@@ -15,9 +15,12 @@ services:
       - TCP_ADDR=:28900
       - API_ADDR=0.0.0.0:8085
       - ALLOW_PRIVATE=false
+      - DB_FILE=/data/servers.json
       - PROBE_INTERVAL_SECONDS=180
       - PROBER_WORKERS=16
       - PROBE_PACING_MS=20
+    volumes:
+      - master-data:/data
     networks:
       - master-net
 
@@ -41,3 +44,6 @@ services:
 networks:
   master-net:
     driver: bridge
+
+volumes:
+  master-data:
