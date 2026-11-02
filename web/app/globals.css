@@ -130,6 +130,66 @@
 }
 
 /* =========================================================================
+   The All-Seeing Eye (ASE) 2000s Vintage Theme Styles (Original Modern Dark)
+   ========================================================================= */
+
+.ase-theme {
+  background: #0d1117;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, 'MS Sans Serif', sans-serif;
+}
+
+.ase-menubar {
+  background: linear-gradient(180deg, #242c3a 0%, #19202a 100%);
+  border-bottom: 1px solid #333f52;
+}
+
+.ase-toolbar {
+  background: linear-gradient(180deg, #283242 0%, #1c232f 100%);
+  border-bottom: 1px solid #0f131a;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.ase-toolbar-btn {
+  background: linear-gradient(180deg, #364254 0%, #242c3a 100%);
+  border: 1px solid #4a5a73;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.ase-toolbar-btn:hover {
+  background: linear-gradient(180deg, #44536a 0%, #2c3647 100%);
+  border-color: #00d2ff;
+}
+
+.ase-toolbar-btn:active {
+  background: #1a212b;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.ase-tree-panel {
+  background: #131822;
+  border-right: 2px solid #232c3d;
+}
+
+.ase-grid-panel {
+  background: #0c1017;
+}
+
+.ase-grid-row-selected {
+  background: #1d3557 !important;
+  color: #ffffff !important;
+}
+
+.ase-eye-glow {
+  box-shadow: 0 0 10px #00d2ff, inset 0 0 4px #fff;
+}
+
+.ase-tree-item-active {
+  background: #1f3a60;
+  color: #64b5f6;
+  font-weight: 600;
+}
+
+/* =========================================================================
    AUTHENTIC 2002 THE ALL-SEEING EYE (ASE) CLASSIC WIN32 THEME
    ========================================================================= */
 
