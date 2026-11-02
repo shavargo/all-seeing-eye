@@ -1,0 +1,43 @@
+services:
+  master:
+    image: ghcr.io/shavargo/all-seeing-eye-master:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.master
+    restart: unless-stopped
+    ports:
+      - "27900:27900/udp"
+      - "27950:27950/udp"
+      - "28900:28900/tcp"
+    environment:
+      - UDP_ADDR=:27900
+      - KPQ3_ADDR=:27950
+      - TCP_ADDR=:28900
+      - API_ADDR=0.0.0.0:8085
+      - ALLOW_PRIVATE=false
+      - PROBE_INTERVAL_SECONDS=180
+      - PROBER_WORKERS=16
+      - PROBE_PACING_MS=20
+    networks:
+      - master-net
+
+  web:
+    image: ghcr.io/shavargo/all-seeing-eye-web:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    restart: unless-stopped
+    depends_on:
+      - master
+    ports:
+      - "80:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MASTER_API_URL=http://master:8085
+    networks:
+      - master-net
+
+networks:
+  master-net:
+    driver: bridge
