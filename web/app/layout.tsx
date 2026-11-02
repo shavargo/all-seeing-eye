@@ -20,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full overflow-hidden">
-      <body className={`${inter.className} h-full h-screen max-h-screen overflow-hidden bg-[#ece9d8] text-black antialiased`}>
+      <body className={`${inter.className} h-full h-screen max-h-screen overflow-hidden bg-[#0d1117] text-slate-100 antialiased`}>
         {children}
       </body>
     </html>

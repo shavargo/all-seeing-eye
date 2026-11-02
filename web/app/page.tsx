@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/sheet';
 import { sfx } from '@/lib/audio';
 import availableIcons from '@/public/icons/index.json';
+import initialSnapshot from '@/lib/initialSnapshot.json';
 
 const ICON_SET = new Set(availableIcons);
 
@@ -170,11 +171,15 @@ export default function AllSeeingEyeDashboard() {
   const { data, isLoading, mutate } = useSWR<SnapshotResponse>(
     '/api/servers',
     fetcher,
-    { refreshInterval: 10000, revalidateOnFocus: true }
+    { 
+      fallbackData: initialSnapshot as unknown as SnapshotResponse,
+      refreshInterval: 10000, 
+      revalidateOnFocus: true 
+    }
   );
 
-  // Theme: Default to Authentic Classic Win32 ASE
-  const [theme, setTheme] = useState<'classic' | 'dark'>('classic');
+  // Theme: Default to Modern Dark Mode ('dark'), with Authentic Classic 2002 Win32 as secondary ('classic')
+  const [theme, setTheme] = useState<'dark' | 'classic'>('dark');
 
   // Sound FX State
   const [audioEnabled, setAudioEnabled] = useState<boolean>(false);
@@ -685,13 +690,15 @@ export default function AllSeeingEyeDashboard() {
           {/* Theme Switcher Toggle */}
           <button
             onClick={toggleTheme}
-            className={`px-2 py-0.5 flex items-center gap-1 cursor-pointer text-[10px] font-semibold ${
-              isClassic ? 'ase-win32-btn' : 'bg-slate-800 border border-slate-700 rounded text-slate-200'
+            className={`px-2 py-0.5 flex items-center gap-1 cursor-pointer text-[10px] font-semibold transition-all ${
+              isClassic 
+                ? 'ase-win32-btn' 
+                : 'bg-slate-800 border border-slate-700 rounded text-slate-200 hover:border-sky-400 hover:text-white'
             }`}
-            title="Switch between Authentic Classic 2002 Win32 theme and Modern Dark mode"
+            title="Switch between Modern Dark and Authentic Classic 2002 Win32 theme"
           >
             {isClassic ? <Moon className="size-3 text-slate-600" /> : <Sun className="size-3 text-yellow-400" />}
-            <span>{isClassic ? 'Classic 2002' : 'Modern Dark'}</span>
+            <span>{isClassic ? 'Theme: Modern Dark' : 'Theme: Classic 2002'}</span>
           </button>
 
           {/* 4,678 Games Catalog Drawer Button */}
@@ -729,9 +736,11 @@ export default function AllSeeingEyeDashboard() {
             
             {/* Tree Root: Scanner Categories */}
             <div className="mb-2">
-              <div className="font-bold flex items-center gap-1 mb-1 text-slate-800 cursor-pointer">
+              <div className={`font-bold flex items-center gap-1 mb-1 cursor-pointer ${
+                isClassic ? 'text-slate-800' : 'text-sky-400'
+              }`}>
                 <span className="ase-tree-expander">-</span>
-                <FolderOpen className="size-3.5 text-amber-500 fill-amber-500" />
+                <FolderOpen className={`size-3.5 ${isClassic ? 'text-amber-500 fill-amber-500' : 'text-sky-400'}`} />
                 <span className="font-bold">Scanner Categories</span>
               </div>
 
@@ -747,11 +756,11 @@ export default function AllSeeingEyeDashboard() {
                   className={`px-1.5 py-0.5 rounded cursor-pointer flex items-center justify-between transition-colors ${
                     treeSelection === 'all' && regionFilter === 'all' && serverTypeFilter === 'all'
                       ? 'ase-row-selected' 
-                      : 'hover:bg-[#316ac5] hover:text-white'
+                      : isClassic ? 'hover:bg-[#316ac5] hover:text-white' : 'text-slate-300 hover:bg-slate-800'
                   }`}
                 >
                   <div className="flex items-center gap-1 truncate">
-                    <Folder className="size-3 text-amber-500 fill-amber-500" />
+                    <Folder className={`size-3 ${isClassic ? 'text-amber-500 fill-amber-500' : 'text-sky-400'}`} />
                     <span>All Active Servers</span>
                   </div>
                   <span className="font-bold text-[10px]">
@@ -768,7 +777,7 @@ export default function AllSeeingEyeDashboard() {
                   className={`px-1.5 py-0.5 rounded cursor-pointer flex items-center justify-between transition-colors ${
                     treeSelection === 'favorites' 
                       ? 'ase-row-selected' 
-                      : 'hover:bg-[#316ac5] hover:text-white'
+                      : isClassic ? 'hover:bg-[#316ac5] hover:text-white' : 'text-slate-300 hover:bg-slate-800'
                   }`}
                 >
                   <div className="flex items-center gap-1 truncate">
@@ -789,7 +798,7 @@ export default function AllSeeingEyeDashboard() {
                   className={`px-1.5 py-0.5 rounded cursor-pointer flex items-center justify-between transition-colors ${
                     treeSelection === 'history' 
                       ? 'ase-row-selected' 
-                      : 'hover:bg-[#316ac5] hover:text-white'
+                      : isClassic ? 'hover:bg-[#316ac5] hover:text-white' : 'text-slate-300 hover:bg-slate-800'
                   }`}
                 >
                   <div className="flex items-center gap-1 truncate">
@@ -807,11 +816,13 @@ export default function AllSeeingEyeDashboard() {
             <div className="mb-2">
               <div 
                 onClick={() => setShowGamesFolder(!showGamesFolder)}
-                className="font-bold flex items-center justify-between mb-1 text-slate-800 cursor-pointer"
+                className={`font-bold flex items-center justify-between mb-1 cursor-pointer ${
+                  isClassic ? 'text-slate-800' : 'text-sky-400'
+                }`}
               >
                 <div className="flex items-center gap-1">
                   <span className="ase-tree-expander">{showGamesFolder ? '-' : '+'}</span>
-                  <FolderOpen className="size-3.5 text-amber-500 fill-amber-500" />
+                  <FolderOpen className={`size-3.5 ${isClassic ? 'text-amber-500 fill-amber-500' : 'text-sky-400'}`} />
                   <span>Games ({activeGameDistribution.length})</span>
                 </div>
               </div>
@@ -831,7 +842,7 @@ export default function AllSeeingEyeDashboard() {
                         className={`px-1.5 py-0.5 rounded cursor-pointer flex items-center justify-between transition-colors ${
                           isSelected 
                             ? 'ase-row-selected' 
-                            : 'hover:bg-[#316ac5] hover:text-white'
+                            : isClassic ? 'hover:bg-[#316ac5] hover:text-white' : 'text-slate-300 hover:bg-slate-800'
                         }`}
                       >
                         <div className="flex items-center gap-1.5 truncate">
@@ -858,11 +869,13 @@ export default function AllSeeingEyeDashboard() {
             <div className="mb-2">
               <div 
                 onClick={() => setShowRegionsFolder(!showRegionsFolder)}
-                className="font-bold flex items-center justify-between mb-1 text-slate-800 cursor-pointer"
+                className={`font-bold flex items-center justify-between mb-1 cursor-pointer ${
+                  isClassic ? 'text-slate-800' : 'text-sky-400'
+                }`}
               >
                 <div className="flex items-center gap-1">
                   <span className="ase-tree-expander">{showRegionsFolder ? '-' : '+'}</span>
-                  <FolderOpen className="size-3.5 text-amber-500 fill-amber-500" />
+                  <FolderOpen className={`size-3.5 ${isClassic ? 'text-amber-500 fill-amber-500' : 'text-sky-400'}`} />
                   <span>By Territory</span>
                 </div>
               </div>
@@ -885,7 +898,7 @@ export default function AllSeeingEyeDashboard() {
                       className={`px-1.5 py-0.5 rounded cursor-pointer flex items-center justify-between transition-colors ${
                         regionFilter === reg.name 
                           ? 'ase-row-selected' 
-                          : 'hover:bg-[#316ac5] hover:text-white'
+                          : isClassic ? 'hover:bg-[#316ac5] hover:text-white' : 'text-slate-300 hover:bg-slate-800'
                       }`}
                     >
                       <div className="flex items-center gap-1.5 truncate">
@@ -905,11 +918,13 @@ export default function AllSeeingEyeDashboard() {
             <div>
               <div 
                 onClick={() => setShowServerTypeFolder(!showServerTypeFolder)}
-                className="font-bold flex items-center justify-between mb-1 text-slate-800 cursor-pointer"
+                className={`font-bold flex items-center justify-between mb-1 cursor-pointer ${
+                  isClassic ? 'text-slate-800' : 'text-sky-400'
+                }`}
               >
                 <div className="flex items-center gap-1">
                   <span className="ase-tree-expander">{showServerTypeFolder ? '-' : '+'}</span>
-                  <FolderOpen className="size-3.5 text-amber-500 fill-amber-500" />
+                  <FolderOpen className={`size-3.5 ${isClassic ? 'text-amber-500 fill-amber-500' : 'text-sky-400'}`} />
                   <span>Server Type</span>
                 </div>
               </div>
@@ -929,7 +944,7 @@ export default function AllSeeingEyeDashboard() {
                         setServerTypeFilter(st.key);
                       }}
                       className={`px-1.5 py-0.5 rounded cursor-pointer flex items-center gap-1.5 transition-colors ${
-                        serverTypeFilter === st.key ? 'ase-row-selected' : 'hover:bg-[#316ac5] hover:text-white'
+                        serverTypeFilter === st.key ? 'ase-row-selected' : isClassic ? 'hover:bg-[#316ac5] hover:text-white' : 'text-slate-300 hover:bg-slate-800'
                       }`}
                     >
                       <input 
@@ -970,16 +985,16 @@ export default function AllSeeingEyeDashboard() {
               {leftSubTab === 'server' ? (
                 selectedServer ? (
                   <div className="space-y-1 text-[11px]">
-                    <div className="font-bold truncate text-[#0a246a]" title={selectedServer.hostname}>
+                    <div className={`font-bold truncate ${isClassic ? 'text-[#0a246a]' : 'text-sky-300'}`} title={selectedServer.hostname}>
                       {sanitizeText(selectedServer.hostname) || selectedServer.ip}
                     </div>
-                    <div className="text-[10px] text-slate-600 font-mono">
+                    <div className={`text-[10px] font-mono ${isClassic ? 'text-slate-600' : 'text-slate-400'}`}>
                       {selectedServer.ip}:{selectedServer.gamePort || selectedServer.queryPort}
                     </div>
                     <div className="grid grid-cols-2 gap-1 text-[10px]">
                       <div>Game: <span className="font-bold">{selectedServer.gamename}</span></div>
                       <div>Map: <span className="font-bold truncate">{selectedServer.map}</span></div>
-                      <div>Players: <span className="font-bold text-green-700">{selectedServer.players}/{selectedServer.maxPlayers}</span></div>
+                      <div>Players: <span className={`font-bold ${isClassic ? 'text-green-700' : 'text-emerald-400'}`}>{selectedServer.players}/{selectedServer.maxPlayers}</span></div>
                       <div>Ping: <span className="font-bold">{selectedServer.ping}ms</span></div>
                     </div>
                     <div className="pt-1 flex gap-1">
@@ -1131,7 +1146,7 @@ export default function AllSeeingEyeDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-[11px] font-sans">
-                {isLoading ? (
+                {!data?.servers ? (
                   <tr>
                     <td colSpan={10} className="py-12 text-center text-slate-500 font-mono">
                       <div>Querying servers...</div>
@@ -1266,21 +1281,25 @@ export default function AllSeeingEyeDashboard() {
                       {selectedServer.roster.map((player, idx) => (
                         <tr 
                           key={idx}
-                          className={`h-5 ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f7f6f0]'}`}
+                          className={`h-5 ${
+                            isClassic 
+                              ? idx % 2 === 0 ? 'bg-white text-black' : 'bg-[#f7f6f0] text-black' 
+                              : idx % 2 === 0 ? 'bg-[#10141c] text-slate-200' : 'bg-[#141a26] text-slate-200'
+                          }`}
                         >
                           <td className="py-0.5 px-2 font-medium">
                             🏃 {sanitizeText(player.name) || 'Unnamed Player'}
                           </td>
-                          <td className="py-0.5 px-2 text-right font-mono font-bold text-blue-900">
+                          <td className={`py-0.5 px-2 text-right font-mono font-bold ${isClassic ? 'text-blue-900' : 'text-emerald-400'}`}>
                             {player.frags}
                           </td>
-                          <td className="py-0.5 px-2 text-right font-mono text-slate-600">
+                          <td className={`py-0.5 px-2 text-right font-mono ${isClassic ? 'text-slate-600' : 'text-slate-400'}`}>
                             {player.ping > 0 ? `${player.ping}ms` : 'n/a'}
                           </td>
-                          <td className="py-0.5 px-2 text-right font-mono text-slate-600">
+                          <td className={`py-0.5 px-2 text-right font-mono ${isClassic ? 'text-slate-600' : 'text-slate-400'}`}>
                             {`${(idx * 7 + 12) % 45}m`}
                           </td>
-                          <td className="py-0.5 px-2 text-slate-600 truncate max-w-[200px]">
+                          <td className={`py-0.5 px-2 truncate max-w-[200px] ${isClassic ? 'text-slate-600' : 'text-slate-400'}`}>
                             {sanitizeText(selectedServer.hostname)}
                           </td>
                         </tr>
