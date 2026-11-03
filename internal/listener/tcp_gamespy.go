@@ -100,7 +100,7 @@ func (l *TCPGameSpyListener) handleConnection(conn net.Conn) {
 // handleListRequest writes out the GameSpy server list.
 func (l *TCPGameSpyListener) handleListRequest(conn net.Conn, msg *gamespy.Message) {
 	gamename := msg.Get("gamename")
-	if gamename == "" {
+	if gamename == "" || strings.EqualFold(gamename, "gspylite") {
 		if msg.Has("all") {
 			gamename = "all"
 		} else {

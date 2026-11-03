@@ -37422,5 +37422,997 @@
         "port": 0,
         "protocol": "gamespy1",
         "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "4x4retail",
+        "label": "4x4 Evolution",
+        "cipher": "MIq0wX",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "AdamsVentureEp1",
+        "label": "Adam\u0092s Venture - Episode 1: The Search for the Lost G",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "AlchemiaExtendedVe",
+        "label": "Alchemia \u0096 Extended Version",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "s_AliensVSPredator",
+        "label": "Aliens vs. Predator",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "exigoam",
+        "label": "Armies of Exigo (Automatch)",
+        "cipher": "mPBHcI",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "AssaultHeroesD2",
+        "label": "Assault Heroes",
+        "cipher": "GZUXrC",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "AttackOnPearlHarbo",
+        "label": "Attack On Pearl Harbor",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "bfield1942sw",
+        "label": "Battlefield 1942: Secret Weapons of WW2",
+        "cipher": "HpWx9z",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "battlefield2",
+        "label": "Battlefield 2: Special Forces",
+        "cipher": "hW6m9a",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "betonsoldier",
+        "label": "Bet on Soldier",
+        "cipher": "mH2y9u",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "bioshockd",
+        "label": "Bioshock Demo",
+        "cipher": "eoaXfs",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "bodarkness",
+        "label": "Blade of Darkness",
+        "cipher": "Jn33pM",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "explom\u00c3\u0083\u00c2\u00a2\u00c3\u00a2\u00e2\u0080\u009a\u00c2",
+        "label": "blah",
+        "cipher": "\u00ac\u00c3\u0082\u00c2\u00b0n",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "explom\u00c3\u0083\u00c2\u00a4ntest",
+        "label": "blah",
+        "cipher": "xUX",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "bldragondfdsam",
+        "label": "Blue Dragon F  Automatch (DS)",
+        "cipher": "4GLxnr",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "biahhPCHpcam",
+        "label": "Brothers In Arms: Hell's Highway  Automatch (",
+        "cipher": "NFBVyk",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "biahhPOLps3am",
+        "label": "Brothers In Arms: Hell's Highway  Automatch (",
+        "cipher": "zEo2mk",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "biahhPRps3am",
+        "label": "Brothers In Arms: Hell's Highway  Automatch (",
+        "cipher": "hWpJhQ",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "biahhRUSpcam",
+        "label": "Brothers In Arms: Hell's Highway  Automatch (",
+        "cipher": "dhkWdE",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "biahhJPps3d",
+        "label": "Brothers In Arms: Hell's Highway  Demo (PS3)",
+        "cipher": "oAEUPB",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "biahhPRps3d",
+        "label": "Brothers In Arms: Hell's Highway  Demo (PS3)",
+        "cipher": "hWpJhQ",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "b\u00c3\u0083\u00c2\u00a4dmasteri",
+        "label": "b\u00c3\u0083\u00c2\u00a4dmasterid",
+        "cipher": "d",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "callofduty4d2dSP",
+        "label": "Call of Duty 4: Modern Warfare (D2D)",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "s_CallofDutyBlackO",
+        "label": "Call of Duty\u00ae: Black Ops",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "s_BlackOpsMultipla",
+        "label": "Call of Duty\u00ae: Black Ops Multiplayer",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "civ4x",
+        "label": "Civilization IV: Warlords",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "conflictdo",
+        "label": "Conflict: Denied Ops",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "CoyotesTaleFireand",
+        "label": "Coyote\u0092s Tale: Fire and Water",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "cskies",
+        "label": "Crimson Skies",
+        "cipher": "Rp5kAG",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "crttest",
+        "label": "CRT - TEST",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "dangerwater",
+        "label": "Dangerous Waters",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "re",
+        "label": "Delta Force \u00c3\u00a2\u00e2\u0082\u00ac\u00e2\u0080\u009c Black Hawk Down: Team Sab",
+        "cipher": "(",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "digbysdonuts",
+        "label": "Digby\u0092s Donuts",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "dtracing",
+        "label": "Dirt Track Racing",
+        "cipher": "ipC912",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "DrnWrk(iphon)am",
+        "label": "DrainWorks  Automatch (iphone)",
+        "cipher": "C0RtRF",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "duke4",
+        "label": "Duke Nukem Forever",
+        "cipher": "8n2Hge",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "s_DukeNukemForever",
+        "label": "Duke Nukem Forever",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "ee3",
+        "label": "Empire Earth III",
+        "cipher": "dObLWQ",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "empireearthiii",
+        "label": "Empire Earth III",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "ee3beta",
+        "label": "Empire Earth III Beta",
+        "cipher": "tvbRKD",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "empiresdam",
+        "label": "Empires: Dawn of the Modern World",
+        "cipher": "GknAbg",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "eforcesr",
+        "label": "Eternal Forces",
+        "cipher": "xQEvFD",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "explom\u00c3\u0083\u00c2\u00a4n",
+        "label": "Explom\u00c3\u0083\u00c2\u00a4n",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "facesow",
+        "label": "Faces of War",
+        "cipher": "qgiNRG",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "fairyfightpcam",
+        "label": "Fairytale Fights  Automatch (PC)",
+        "cipher": "R6JnVy",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "fairyfightspcd",
+        "label": "Fairytale Fights  Demo (PC)",
+        "cipher": "BqQzb9",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "fairyfightspc",
+        "label": "Fairytale Fights (PC)",
+        "cipher": "BqQzb9",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "FalloutTactics",
+        "label": "Fallout Tactics: Brotherhood of Steel",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "FishdomH2O_D2D",
+        "label": "Fishdom H2O: Hidden Odyssey",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "FootballManager201",
+        "label": "Football Manager 2010",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "fforce",
+        "label": "Freedom Force",
+        "cipher": "ys3k4d",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "ffowbeta",
+        "label": "Frontlines: Fuel of War Beta",
+        "cipher": "wqhcSQ",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "fullspecwarr",
+        "label": "Full Spectrum Warrior",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "furfighters",
+        "label": "Fur Fighters",
+        "cipher": "JwUhCT",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "genesisr",
+        "label": "Genesis Rising: The Universal Crusade",
+        "cipher": "sbCDkj",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "gore",
+        "label": "Gore",
+        "cipher": "Mbz942",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "goreAV",
+        "label": "Gore (Ad version)",
+        "cipher": "oKOLBm",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "halflife",
+        "label": "Half-Life: Counter-Strike",
+        "cipher": "ZIr1wX",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "halo",
+        "label": "Halo Beta",
+        "cipher": "QW88cv",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "HamiltonsGreatAdve",
+        "label": "Hamilton\u0092s Great Adventure",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "hankhaneysworldgol",
+        "label": "Hank Haney\u0092s World Golf",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "IJandtheLastCrusad",
+        "label": "Indiana Jones(R) and the Last Crusade\u0099",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "blahblahtest",
+        "label": "Just another test for masterid",
+        "cipher": "uH88tT",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "blahtest",
+        "label": "Just another test for masterid",
+        "cipher": "uH88tT",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "kohanIIkowd2d",
+        "label": "Kohan II: Kings of War",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "konascrate",
+        "label": "Kona\u0092s Crate",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "leadfoot",
+        "label": "Leadfoot",
+        "cipher": "n8J20Y",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "lordsoftherealmIII",
+        "label": "Lords of the Realm III",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "mageknighta",
+        "label": "Mage Knight Apocalypse",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "moo3",
+        "label": "Master of Orion III",
+        "cipher": "g4J72d",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "mechcomm2",
+        "label": "MechCommander 2",
+        "cipher": "6ajiPV",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "menofwar:asam",
+        "label": "Men of War: UNUSED",
+        "cipher": "aGkHH7",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "menofwar:nam",
+        "label": "Men of War: UNUSED",
+        "cipher": "Wa621Q",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "menofwar:namam",
+        "label": "Men of War: UNUSED",
+        "cipher": "Wa621Q",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "CrazyComputers",
+        "label": "MicroMan\u0092s Crazy Computers",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "MI2SELeChucksReven",
+        "label": "Monkey Island 2 SE: LeChuck\u0092s Revenge",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "NancyDrewSCK",
+        "label": "Nancy Drew\u00ae: #01 Secrets Can Kill REMASTERED",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "neighborsfhov2",
+        "label": "Neighbors from Hell: On Vacation",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "ninTest:",
+        "label": "Nintendo Development Testing masterID 11",
+        "cipher": "EdD7Ve",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "omfbattleb",
+        "label": "One Must Fall Battlegrounds",
+        "cipher": "Abm93d",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "originalwar",
+        "label": "Original War",
+        "cipher": "CV34p2",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "poverdose",
+        "label": "Painkiller Overdose",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "piratesburn",
+        "label": "Pirates of the Burning Sea",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "PuzzlePirates",
+        "label": "Puzzle Pirates",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "RideemLow",
+        "label": "Ride\u0092em Low",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "rfcivaw",
+        "label": "Rise and Fall: Civilizations at War",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "RollerCTycoon2Wack",
+        "label": "RollerCoaster Tycoon\u00ae 2: Wacky Worlds",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "runedemo",
+        "label": "Rune Demo",
+        "cipher": "V5Hm41",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "saadtestam",
+        "label": "SaadsTest",
+        "cipher": "1a2B3c",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "sbk08ps3am",
+        "label": "SBK '08: Superbike World Championship  Automa",
+        "cipher": "Xhg4AV",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "sunion",
+        "label": "Shattered Union",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "civ4coljpam",
+        "label": "Sid Meier's Civilization 4: Colonization  Aut",
+        "cipher": "5wddmt",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "sidmrailroads",
+        "label": "Sid Meier's Railroads!",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "silenthillhomed2d",
+        "label": "Silent Hill Homecoming",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "specialforces",
+        "label": "Special Forces",
+        "cipher": "V4f02S",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "stlegacy",
+        "label": "Star Trek: Legacy",
+        "cipher": "x9qTsK",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "starwarsg",
+        "label": "Star Wars Galaxies",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "swrcommandod",
+        "label": "Star Wars Republic Commando",
+        "cipher": "vMPtab",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "sweaw",
+        "label": "Star Wars: Empire At War",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "sweawfoc",
+        "label": "Star Wars: Empire at War - Forces of Corruption",
+        "cipher": "oFgIYB",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "SF3RemiXboxam",
+        "label": "Street Fighter 3 Remix  Automatch (Xbox360)",
+        "cipher": "illWHA",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "SF3RemixXbox",
+        "label": "Street Fighter 3 Remix (Xbox360)",
+        "cipher": "Qvskuu",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "strifeshadow",
+        "label": "Strifeshadow",
+        "cipher": "Abv3a9",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "strongbadscoolgame",
+        "label": "Strong Bad's Cool Game for Attractive People Episode",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "StrongholdLegends",
+        "label": "Stronghold Legends",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "ut",
+        "label": "Tactical Ops: Assault on Terror",
+        "cipher": "uMctFb",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "terrortkdwn2",
+        "label": "Terrorist Takedown 2",
+        "cipher": "KmqStH",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "test",
+        "label": "Test",
+        "cipher": "Hku6Fd",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "test071806",
+        "label": "Test",
+        "cipher": "7bxOC2",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "testdriveub",
+        "label": "Test Drive Unlimited",
+        "cipher": "BeTTbz",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "thestalinsubwayd",
+        "label": "The Stalin Subway",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "TheTarotsMisfortun",
+        "label": "The Tarot\u0092s Misfortune",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "TransformersWFC",
+        "label": "Transformers\u0099: War for Cybertron\u0099",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "tvmanager2",
+        "label": "TV Manager 2 \u0096 Standard Edition",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "unreal2demo",
+        "label": "Unreal 2 Demo",
+        "cipher": "Yel30y",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "warfronttp",
+        "label": "War Front: Turning Point",
+        "cipher": "LTOTAa",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "dowd",
+        "label": "Warhammer 40,000: Dawn of War",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "whammer40000",
+        "label": "Warhammer 40,000: Dawn of War",
+        "cipher": "uJ8d3N",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "whammer40000am",
+        "label": "Warhammer 40,000: Dawn of War",
+        "cipher": "uJ8d3N",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "wh40kdow2crolam",
+        "label": "Warhammer 40K - Dawn of War 2 - Chaos Rising",
+        "cipher": "BlTqbc",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "whoaorbeta",
+        "label": "Warhammer Online: Age of Reckoning",
+        "cipher": "",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "wingsofward",
+        "label": "Wings of War Demo",
+        "cipher": "sWSqHB",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "wicd",
+        "label": "World in Conflict Demo",
+        "cipher": "taMBOb",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
+    },
+    {
+        "gamename": "Wages",
+        "label": "wosin",
+        "cipher": "of",
+        "port": 0,
+        "protocol": "gamespy1",
+        "category": "GameSpy PC Classic"
     }
 ]
