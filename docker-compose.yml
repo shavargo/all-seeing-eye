@@ -1,0 +1,57 @@
+services:
+  master:
+    image: ghcr.io/shavargo/openmaster-daemon:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.master
+    restart: unless-stopped
+    ports:
+      - "28900:28900/tcp"
+      - "28902:28902/tcp"
+      - "28910:28910/tcp"
+      - "27900:27900/udp"
+      - "27950:27950/udp"
+      - "20510:20510/udp"
+      - "20610:20610/udp"
+      - "20710:20710/udp"
+      - "20810:20810/udp"
+      - "28060:28060/udp"
+      - "29060:29060/udp"
+      - "20110:20110/udp"
+      - "27953:27953/udp"
+      - "29250:29250/udp"
+      - "27777:27777/udp"
+    environment:
+      - UDP_ADDR=:27900
+      - KPQ3_ADDR=:27950
+      - TCP_ADDR=:28900
+      - UT2004_ADDR=:28902
+      - TCP_V1_ADDR=:28910
+      - API_ADDR=0.0.0.0:8085
+      - ALLOW_PRIVATE=false
+      - DB_FILE=/data/servers.json
+      - BLACKLIST_IPS=88.97.18.58
+    volumes:
+      - master-data:/data
+    networks:
+      - master-net
+
+  web:
+    image: ghcr.io/shavargo/openmaster-web:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    restart: unless-stopped
+    depends_on:
+      - master
+    ports:
+      - "80:3000"
+    networks:
+      - master-net
+
+networks:
+  master-net:
+    driver: bridge
+
+volumes:
+  master-data:

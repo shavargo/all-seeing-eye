@@ -1,0 +1,32 @@
+# Multi-stage Go build for GameSpy & Kingpin Master Server
+FROM golang:alpine AS builder
+
+WORKDIR /build
+COPY go.mod ./
+COPY cmd/ ./cmd/
+COPY internal/ ./internal/
+
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /master ./cmd/master/main.go
+
+FROM alpine:latest AS runtime
+RUN apk --no-cache add ca-certificates tzdata \
+    && addgroup -S master && adduser -S master -G master \
+    && mkdir -p /data && chown -R master:master /data
+
+USER master
+COPY --from=builder /master /usr/local/bin/master
+
+VOLUME ["/data"]
+
+EXPOSE 28900/tcp 28902/tcp 28910/tcp 8085/tcp 27900/udp 27950/udp 20510/udp 20610/udp 20710/udp 20810/udp 28060/udp 29060/udp 20110/udp 27953/udp 29250/udp 27777/udp
+
+ENV UDP_ADDR=":27900" \
+    KPQ3_ADDR=":27950" \
+    TCP_ADDR=":28900" \
+    UT2004_ADDR=":28902" \
+    TCP_V1_ADDR=":28910" \
+    API_ADDR="0.0.0.0:8085" \
+    ALLOW_PRIVATE="false" \
+    DB_FILE="/data/servers.json"
+
+ENTRYPOINT ["/usr/local/bin/master"]

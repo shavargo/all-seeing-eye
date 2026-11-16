@@ -1,0 +1,8 @@
+bin/
+web/.next/
+web/node_modules/
+.DS_Store
+*.log
+data/
+*.tmp
+*.tmp.*

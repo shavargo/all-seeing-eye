@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenMaster | Universal Retro Master Server</title>
+  <link rel="icon" href="/favicon.ico">
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --card-bg: #111827;
+      --card-border: #1f2937;
+      --accent: #0ea5e9;
+      --accent-hover: #38bdf8;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --code-bg: #030712;
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      padding: 1.5rem;
+    }
+
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 1.5rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .brand-logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      object-fit: cover;
+      box-shadow: 0 0 16px rgba(14, 165, 233, 0.35);
+      border: 1px solid rgba(14, 165, 233, 0.3);
+    }
+
+    .brand h1 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+
+    .brand p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .badge-passive {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-weight: 600;
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--success);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    /* Connection Guide Cards */
+    .guide-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .guide-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+
+    .guide-card h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .guide-card p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .code-box {
+      background: var(--code-bg);
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.78rem;
+      color: #38bdf8;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .api-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .api-links a {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      background: var(--code-bg);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      border: 1px solid #1e293b;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .api-links a:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* Filter & Search Bar */
+    .toolbar {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.85rem;
+      margin-bottom: 1rem;
+    }
+
+    .search-inputs {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      flex: 1;
+    }
+
+    input[type="text"], select {
+      background: var(--code-bg);
+      border: 1px solid #334155;
+      color: #fff;
+      padding: 0.45rem 0.8rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      outline: none;
+      font-family: inherit;
+    }
+
+    input[type="text"] {
+      min-width: 260px;
+      flex: 1;
+    }
+
+    input[type="text"]:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    .server-stats {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    /* Server Table */
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-bottom: 1.25rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.82rem;
+    }
+
+    th {
+      background: #0d131f;
+      padding: 0.65rem 0.85rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    td {
+      padding: 0.65rem 0.85rem;
+      border-bottom: 1px solid #1a2234;
+      vertical-align: middle;
+    }
+
+    tr:hover {
+      background: rgba(14, 165, 233, 0.04);
+    }
+
+    .badge-game {
+      background: rgba(14, 165, 233, 0.15);
+      color: #7dd3fc;
+      border: 1px solid rgba(14, 165, 233, 0.3);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-weight: 700;
+      text-transform: uppercase;
+      display: inline-block;
+    }
+
+    .server-title {
+      font-weight: 600;
+      color: #fff;
+      max-width: 450px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .address-cell {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      color: #cbd5e1;
+      white-space: nowrap;
+    }
+
+    .btn-action {
+      background: #1e293b;
+      color: #e2e8f0;
+      border: 1px solid #334155;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .btn-action:hover {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .page-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--success);
+      color: #000;
+      font-weight: 700;
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.2s ease;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    
+    <!-- Top Header -->
+    <header>
+      <div class="brand">
+        <img src="/openmaster-logo.png" alt="OpenMaster" class="brand-logo" onerror="this.style.display='none'">
+        <div>
+          <h1>OpenMaster</h1>
+          <p>Universal Retro Master Server Directory &amp; Sync Hub</p>
+        </div>
+      </div>
+      <div class="badge-passive">
+        <span class="badge-dot"></span>
+        <span>PASSIVE DIRECTORY MODE (0 PROBES)</span>
+      </div>
+    </header>
+
+    <!-- Master Server Connection Guide Cards -->
+    <div class="guide-grid">
+      <div class="guide-card">
+        <h3>📡 GameSpy Master (TCP)</h3>
+        <p>For UT99, Rune, Deus Ex, 333Networks &amp; GameSpy v1 (Halo, BF):</p>
+        <div class="code-box">master2.shavargo.com:28900 / 28910</div>
+      </div>
+
+      <div class="guide-card">
+        <h3>🏆 Unreal Tournament 2004 (TCP)</h3>
+        <p>Native [IpDrv.MasterServerLink] binary browser &amp; uplink:</p>
+        <div class="code-box">master2.shavargo.com:28902</div>
+      </div>
+
+      <div class="guide-card">
+        <h3>⚡ idTech 3 / Call of Duty / JK</h3>
+        <p>Quake 3 (:27950), CoD 1-4 (:20510-20810), JK2/JKA (:28060/29060):</p>
+        <div class="code-box">master2.shavargo.com:27950</div>
+      </div>
+
+      <div class="guide-card">
+        <h3>🎮 Quake 2 &amp; Dual UDP</h3>
+        <p>Dedicated server heartbeats and legacy UDP server queries:</p>
+        <div class="code-box">master2.shavargo.com:27900</div>
+      </div>
+    </div>
+
+    <!-- API shortcuts -->
+    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: flex-end; margin-bottom: 0.75rem;">
+      <a href="/api/v1/stats" target="_blank" style="font-size: 0.75rem; color: var(--text-muted); text-decoration: none; background: var(--card-bg); padding: 0.25rem 0.6rem; border-radius: 4px; border: 1px solid var(--card-border); font-family: ui-monospace, monospace;">API: /api/v1/stats</a>
+      <a href="/api/v1/servers" target="_blank" style="font-size: 0.75rem; color: var(--text-muted); text-decoration: none; background: var(--card-bg); padding: 0.25rem 0.6rem; border-radius: 4px; border: 1px solid var(--card-border); font-family: ui-monospace, monospace;">API: /api/v1/servers</a>
+      <a href="/api/v1/games" target="_blank" style="font-size: 0.75rem; color: var(--text-muted); text-decoration: none; background: var(--card-bg); padding: 0.25rem 0.6rem; border-radius: 4px; border: 1px solid var(--card-border); font-family: ui-monospace, monospace;">API: /api/v1/games</a>
+    </div>
+
+    <!-- Server Table Toolbar -->
+    <div class="toolbar">
+      <div class="search-inputs">
+        <input 
+          type="text" 
+          id="search-input" 
+          placeholder="Filter by server name, game, or IP (e.g. Quake, UT, 192.168)..."
+          autocomplete="off"
+        >
+        <select id="game-filter">
+          <option value="all">All Games (Loading...)</option>
+        </select>
+      </div>
+      <div class="server-stats" id="stats-counter">
+        Loading servers...
+      </div>
+    </div>
+
+    <!-- Main Server Directory Table -->
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 140px;">Game</th>
+            <th>Server Name</th>
+            <th style="width: 260px;">IP Address : Port</th>
+          </tr>
+        </thead>
+        <tbody id="servers-body">
+          <tr>
+            <td><span class="badge-game">ut99</span></td>
+            <td><div class="server-title">[EU] Unreal Tournament DM Public Server</div></td>
+            <td class="address-cell" onclick="copyText('185.107.96.101:7777', '185.107.96.101:7777')" style="cursor: pointer;" title="Click to copy IP:Port">185.107.96.101:7777</td>
+          </tr>
+          <tr>
+            <td><span class="badge-game">quake3</span></td>
+            <td><div class="server-title">Excessive Plus FFA Chicago #1</div></td>
+            <td class="address-cell" onclick="copyText('108.61.100.24:27960', '108.61.100.24:27960')" style="cursor: pointer;" title="Click to copy IP:Port">108.61.100.24:27960</td>
+          </tr>
+          <tr>
+            <td><span class="badge-game">tacticalops</span></td>
+            <td><div class="server-title">Tactical Ops: Assault on Terror Classic Server</div></td>
+            <td class="address-cell" onclick="copyText('149.202.88.34:7777', '149.202.88.34:7777')" style="cursor: pointer;" title="Click to copy IP:Port">149.202.88.34:7777</td>
+          </tr>
+          <tr>
+            <td><span class="badge-game">cod4</span></td>
+            <td><div class="server-title">Killhouse 24/7 Hardcore Team Deathmatch</div></td>
+            <td class="address-cell" onclick="copyText('92.29.239.194:28960', '92.29.239.194:28960')" style="cursor: pointer;" title="Click to copy IP:Port">92.29.239.194:28960</td>
+          </tr>
+          <tr>
+            <td><span class="badge-game">mohaa</span></td>
+            <td><div class="server-title">MoH: Allied Assault V2 Sniper Only</div></td>
+            <td class="address-cell" onclick="copyText('80.241.215.118:12203', '80.241.215.118:12203')" style="cursor: pointer;" title="Click to copy IP:Port">80.241.215.118:12203</td>
+          </tr>
+          <tr>
+            <td><span class="badge-game">ut2004</span></td>
+            <td><div class="server-title">UT2004 Onslaught Torlan 24/7 Public</div></td>
+            <td class="address-cell" onclick="copyText('198.50.201.76:7777', '198.50.201.76:7777')" style="cursor: pointer;" title="Click to copy IP:Port">198.50.201.76:7777</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="pagination">
+      <div class="server-stats" id="page-indicator">Page 1 of 1</div>
+      <div class="page-buttons">
+        <button class="btn-action" id="btn-prev" disabled>&larr; Previous</button>
+        <button class="btn-action" id="btn-next" disabled>Next &rarr;</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="toast" class="toast">Copied to clipboard!</div>
+
+  <script>
+    let allServers = [
+      { gamename: 'ut99', hostname: '[EU] Unreal Tournament DM Public Server', ip: '185.107.96.101', gamePort: 7777 },
+      { gamename: 'quake3', hostname: 'Excessive Plus FFA Chicago #1', ip: '108.61.100.24', gamePort: 27960 },
+      { gamename: 'tacticalops', hostname: 'Tactical Ops: Assault on Terror Classic Server', ip: '149.202.88.34', gamePort: 7777 },
+      { gamename: 'cod4', hostname: 'Killhouse 24/7 Hardcore Team Deathmatch', ip: '92.29.239.194', gamePort: 28960 },
+      { gamename: 'mohaa', hostname: 'MoH: Allied Assault V2 Sniper Only', ip: '80.241.215.118', gamePort: 12203 },
+      { gamename: 'ut2004', hostname: 'UT2004 Onslaught Torlan 24/7 Public', ip: '198.50.201.76', gamePort: 7777 },
+      { gamename: 'swat4', hostname: 'SWAT4 TSS VIP Escort 24/7', ip: '195.201.168.107', gamePort: 10480 },
+      { gamename: 'kingpin', hostname: 'Kingpin Thug DM Chicago', ip: '66.151.138.13', gamePort: 31510 },
+      { gamename: 'vietcong', hostname: 'Vietcong Halong Port Stream', ip: '89.163.208.204', gamePort: 5425 },
+      { gamename: 'postal2', hostname: 'Postal 2 Snatch FFA', ip: '217.182.199.7', gamePort: 7777 }
+    ];
+    let filteredServers = [...allServers];
+    let currentPage = 1;
+    const pageSize = 50;
+
+    const searchInput = document.getElementById('search-input');
+    const gameFilter = document.getElementById('game-filter');
+    const serversBody = document.getElementById('servers-body');
+    const statsCounter = document.getElementById('stats-counter');
+    const pageIndicator = document.getElementById('page-indicator');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const toast = document.getElementById('toast');
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    function copyText(text, label) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(label ? `Copied: ${label}` : 'Copied to clipboard!');
+      });
+    }
+
+    function sanitize(str) {
+      if (!str) return '';
+      return str.replace(/[&<>'"]/g, 
+        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+      );
+    }
+
+    function renderTable() {
+      const total = filteredServers.length;
+      const totalPages = Math.max(1, Math.ceil(total / pageSize));
+      if (currentPage > totalPages) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
+
+      const start = (currentPage - 1) * pageSize;
+      const end = Math.min(start + pageSize, total);
+      const visible = filteredServers.slice(start, end);
+
+      statsCounter.textContent = `Showing ${total.toLocaleString()} servers`;
+      pageIndicator.textContent = `Page ${currentPage} of ${totalPages} (${total.toLocaleString()} total)`;
+
+      btnPrev.disabled = currentPage <= 1;
+      btnNext.disabled = currentPage >= totalPages;
+
+      if (visible.length === 0) {
+        serversBody.innerHTML = `
+          <tr>
+            <td colspan="3" style="text-align: center; padding: 3rem; color: #64748b; font-family: monospace;">
+              No servers match the filter criteria.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      serversBody.innerHTML = visible.map(srv => {
+        const port = srv.gamePort || srv.queryPort;
+        const name = sanitize(srv.hostname) || `${srv.ip}:${port}`;
+        const game = sanitize(srv.gamename || 'unknown');
+        const addr = `${srv.ip}:${port}`;
+
+        return `
+          <tr>
+            <td>
+              <span class="badge-game">${game}</span>
+            </td>
+            <td>
+              <div class="server-title" title="${name}">${name}</div>
+            </td>
+            <td class="address-cell" onclick="copyText('${addr}', '${addr}')" style="cursor: pointer;" title="Click to copy IP:Port">
+              ${addr}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterData() {
+      const q = searchInput.value.toLowerCase().trim();
+      const selectedGame = gameFilter.value;
+
+      filteredServers = allServers.filter(s => {
+        if (selectedGame !== 'all' && (s.gamename || '').toLowerCase() !== selectedGame) {
+          return false;
+        }
+        if (!q) return true;
+        const host = (s.hostname || '').toLowerCase();
+        const ip = (s.ip || '').toLowerCase();
+        const game = (s.gamename || '').toLowerCase();
+        const port = String(s.gamePort || srv.queryPort || '');
+        return host.includes(q) || ip.includes(q) || game.includes(q) || port.includes(q);
+      });
+
+      currentPage = 1;
+      renderTable();
+    }
+
+    searchInput.addEventListener('input', filterData);
+    gameFilter.addEventListener('change', filterData);
+
+    btnPrev.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderTable();
+        window.scrollTo({ top: 350, behavior: 'smooth' });
+      }
+    });
+
+    btnNext.addEventListener('click', () => {
+      const totalPages = Math.ceil(filteredServers.length / pageSize);
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderTable();
+        window.scrollTo({ top: 350, behavior: 'smooth' });
+      }
+    });
+
+    // Initial Fetch
+    async function init() {
+      try {
+        const res = await fetch('/api/v1/servers');
+        if (!res.ok) return; // Retain initial servers if API offline
+        const data = await res.json();
+        if (data.servers && data.servers.length > 0) {
+          allServers = data.servers;
+
+          // Build game dropdown list with counts
+          const gameCounts = {};
+          allServers.forEach(s => {
+            const g = (s.gamename || 'unknown').toLowerCase();
+            gameCounts[g] = (gameCounts[g] || 0) + 1;
+          });
+
+          const sortedGames = Object.keys(gameCounts).sort((a, b) => gameCounts[b] - gameCounts[a]);
+          gameFilter.innerHTML = '<option value="all">All Games (' + allServers.length.toLocaleString() + ')</option>' +
+            sortedGames.map(g => `<option value="${g}">${g.toUpperCase()} (${gameCounts[g]})</option>`).join('');
+
+          filterData();
+        }
+      } catch (err) {
+        console.warn('API fetch skipped or offline, retaining pre-rendered directory:', err);
+      }
+    }
+
+    renderTable();
+    init();
+  </script>
+</body>
+</html>
