@@ -107,6 +107,18 @@ Packet Demuxer        Server Browser             & 333Networks      & Server Dir
 
 ---
 
+## Container Architecture & Images
+
+OpenMaster publishes three purpose-built container images to the GitHub Container Registry (`ghcr.io`):
+
+| Image Name | Dockerfile | Purpose & Contents | Best Used For |
+| :--- | :--- | :--- | :--- |
+| **`ghcr.io/shavargo/openmaster:latest`** | [`Dockerfile`](Dockerfile) | **Unified All-in-One (Daemon + NGINX)**<br>Combines the Go master server daemon and NGINX web directory in a single container managed by `dumb-init`. Both processes run concurrently with unified signal handling. | Standalone VPS deployments, quick evaluations, and single `docker run` commands. |
+| **`ghcr.io/shavargo/openmaster-daemon:latest`** | [`Dockerfile.master`](Dockerfile.master) | **Headless Master Server Daemon**<br>Contains exclusively the compiled Go binary running as a non-root user (`master:master`). Binds all TCP/UDP game protocols and exposes the internal REST API on `:8085`. Zero web assets. | Docker Compose stacks, headless servers, Kubernetes pods, or distributed clusters. |
+| **`ghcr.io/shavargo/openmaster-web:latest`** | [`Dockerfile.web`](Dockerfile.web) | **NGINX Web Directory & Reverse Proxy**<br>Ultra-lightweight Alpine NGINX container (`~30 MB`) serving the responsive server browser and reverse-proxying `/api/` traffic to the daemon. | Multi-service Compose stacks, edge proxies, or when isolating web traffic from game UDP traffic. |
+
+---
+
 ## Quickstart: Docker Deployment
 
 Pre-built multi-architecture container images are published to the GitHub Container Registry (`ghcr.io`).
