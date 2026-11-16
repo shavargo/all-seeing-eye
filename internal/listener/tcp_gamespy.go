@@ -14,7 +14,7 @@ import (
 	"master-server/internal/registry"
 )
 
-// TCPGameSpyListener serves GameSpy v0 server lists and 333Networks sync requests on port 28900.
+// TCPGameSpyListener serves GameSpy v0/v1 server lists on port 28900 and 28910.
 type TCPGameSpyListener struct {
 	addr     string
 	store    *registry.Store
@@ -84,13 +84,7 @@ func (l *TCPGameSpyListener) handleConnection(conn net.Conn) {
 	raw := string(buf[:n])
 	msg := gamespy.ParseMessage(raw)
 
-	// 3a. Handle 333Networks \sync\ request
-	if msg.Has("sync") {
-		l.handleSyncRequest(conn, msg)
-		return
-	}
-
-	// 3b. Handle GameSpy \list\ request
+	// Handle GameSpy \list\ request
 	if msg.Has("list") || strings.Contains(raw, "\\list\\") {
 		l.handleListRequest(conn, msg)
 		return
@@ -113,31 +107,6 @@ func (l *TCPGameSpyListener) handleListRequest(conn net.Conn, msg *gamespy.Messa
 	var sb strings.Builder
 	for _, srv := range servers {
 		sb.WriteString(fmt.Sprintf("\\ip\\%s:%d", srv.IP, srv.GamePort))
-	}
-	sb.WriteString("\\final\\")
-
-	_, _ = conn.Write([]byte(sb.String()))
-}
-
-// handleSyncRequest formats lists for 333Networks federation:
-// \gamename1\ip:port ip:port\gamename2\ip:port...\final\
-func (l *TCPGameSpyListener) handleSyncRequest(conn net.Conn, msg *gamespy.Message) {
-	requestedGame := msg.Get("sync")
-	snap := l.store.GetSnapshot()
-
-	// Group servers by gamename
-	byGame := make(map[string][]string)
-	for _, srv := range snap.Servers {
-		gn := srv.Gamename
-		if requestedGame != "all" && requestedGame != "" && !strings.Contains(requestedGame, gn) {
-			continue
-		}
-		byGame[gn] = append(byGame[gn], fmt.Sprintf("%s:%d", srv.IP, srv.GamePort))
-	}
-
-	var sb strings.Builder
-	for gn, addrs := range byGame {
-		sb.WriteString(fmt.Sprintf("\\%s\\%s ", gn, strings.Join(addrs, " ")))
 	}
 	sb.WriteString("\\final\\")
 

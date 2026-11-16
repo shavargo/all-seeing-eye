@@ -27,12 +27,12 @@ The web interface is served via an ultra-lightweight NGINX container (`~30 MB` i
        │                   │                         │                   │
  [UDP 27900]          [UDP 27950]               [TCP 28900]         [HTTP 80/3000]
 Dual Protocol        KPQ3 / idTech 3           GameSpy v0 List      NGINX Reverse Proxy
-Packet Demuxer        Server Browser             & 333Networks      & Server Directory
+Packet Demuxer        Server Browser             & v1 Queries       & Server Directory
        │                   │                         │                   │
- ├── 0x5C ('\'):           │                   ├── \list\                │
- │   GameSpy Heartbeats    │                   │   (UT, KP, etc.)        │
- └── 0xFF (Quake 2):       │                   └── \sync\                │
-     In-Game Browser       │                       (333Networks)         │
+ ├── 0x5C ('\'):           │                   └── \list\                │
+ │   GameSpy Heartbeats    │                       (UT, KP, etc.)        │
+ └── 0xFF (Quake 2):       │                                             │
+     In-Game Browser       │                                             │
                            └────────────┬────────────┘                   │
                                         │                                │
                           ┌─────────────┴─────────────┐                  │
@@ -68,10 +68,10 @@ Packet Demuxer        Server Browser             & 333Networks      & Server Dir
    * Delivers length-prefixed challenge auth, `APPROVED`/`VERIFIED` handshakes, MOTD delivery, and binary server list feeds to the in-game server browser.
    * Accepts dedicated server uplinks and refresh packets.
 4. **GameSpy Master List Server on Ports 28900 & 28910 (TCP)**:
-   * Responds to `\list\cmp\` and `\list\` queries for UT99, Rune, Deus Ex, and GameSpy v0/v1 clients.
-   * Full compatibility with the **333Networks Master Server federation** via `\sync\`.
+   * Responds to `\list\cmp\` and `\list\` queries for UT99, Rune, Deus Ex, and GameSpy v0/v1 clients (Halo, BF1942, Crysis).
+   * Fast, in-memory GameSpy delimiter formatting (`\ip\port\ip\port\final\`).
 5. **4,800+ Game Catalog Embedded**:
-   * Pre-configured with validation ciphers from the GameSpy and 333Networks catalog.
+   * Pre-configured with validation ciphers from the GameSpy catalog.
    * Unreal, Quake, Deus Ex, Rune, Kingpin, and others automatically bypass `\secure\` challenges to accept dedicated servers without dropped connections.
 6. **Zero Outbound Probing (100% Passive)**:
    * Master server issues **zero** unsolicited outbound UDP query packets to the internet.
@@ -87,7 +87,7 @@ Packet Demuxer        Server Browser             & 333Networks      & Server Dir
 
 | Port | Protocol | Purpose / Games |
 | :--- | :--- | :--- |
-| **`28900`** | TCP | GameSpy v0 master list query (`\list\`) + 333Networks federation (`\sync\`) |
+| **`28900`** | TCP | GameSpy v0 master list query (`\list\`) |
 | **`28902`** | TCP | **Unreal Tournament 2004 & 2003** in-game browser & uplink (`[IpDrv]`) |
 | **`28910`** | TCP | **GameSpy v1** master list query (Halo, Battlefield 1942/2, Crysis) |
 | **`27900`** | UDP | Dual GameSpy heartbeats (`\heartbeat\`) + Quake 2 in-game browser (`query\n`) |
@@ -201,7 +201,7 @@ Or open [web/public/index.html](web/public/index.html) directly in any browser.
 
 - Server address registries and multi-master mirrors are ingested from [retro-server-mirror](https://github.com/shavargo/retro-server-mirror).
 - Game definitions and metadata originate from [lookout-games](https://github.com/molycode/lookout-games) (MIT, Copyright (c) 2026 moly).
-- Master server protocols and network data from [OpenSpy](https://openspy.net/) and [333networks](https://333networks.com/).
+- Master server protocols and network reverse engineering from [OpenSpy](https://openspy.net/) and retro gaming communities.
 
 ---
 
