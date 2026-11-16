@@ -79,9 +79,9 @@ func NewSeeder(store *registry.Store, gameReg *games.Registry, urls []string, in
 		{Game: "alienarena", Protocol: "quake2", Host: "master.alienarena.org", Port: 27900},
 	}
 
-	// Allow disabling direct upstream master queries via env var
-	disableDirect := strings.EqualFold(os.Getenv("DISABLE_DIRECT_PEER_QUERY"), "true") ||
-		strings.EqualFold(os.Getenv("MIRROR_ONLY"), "true")
+	// Only enable direct upstream UDP master queries if explicitly requested via environment variable.
+	// Defaults to false to guarantee 100% passive operation with 0 outbound UDP sockets.
+	enableDirect := strings.EqualFold(os.Getenv("ENABLE_DIRECT_PEER_QUERY"), "true")
 
 	return &Seeder{
 		store:          store,
@@ -89,7 +89,7 @@ func NewSeeder(store *registry.Store, gameReg *games.Registry, urls []string, in
 		urls:           urls,
 		peers:          peers,
 		interval:       interval,
-		peerSyncActive: !disableDirect,
+		peerSyncActive: enableDirect,
 		client: &http.Client{
 			Timeout: 15 * time.Second,
 		},
