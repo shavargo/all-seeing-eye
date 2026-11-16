@@ -66,28 +66,37 @@ func (l *TCPGameSpyListener) handleConnection(conn net.Conn) {
 
 	// 1. Send GameSpy challenge to client
 	challenge := "TXKOAT"
-	initialGreeting := fmt.Sprintf("\\basic\\\\secure\\%s", challenge)
+	initialGreeting := fmt.Sprintf("\\basic\\\\secure\\%s\\", challenge)
 	if _, err := conn.Write([]byte(initialGreeting)); err != nil {
 		return
 	}
 
-	// 2. Read client request
+	// 2. Read client requests in a loop (handles multi-packet handshake: \validate\ followed by \list\)
 	buf := make([]byte, 4096)
-	n, err := conn.Read(buf)
-	if err != nil && err != io.EOF {
-		return
-	}
-	if n <= 0 {
-		return
-	}
+	for {
+		_ = conn.SetDeadline(time.Now().Add(10 * time.Second))
+		n, err := conn.Read(buf)
+		if err != nil && err != io.EOF {
+			return
+		}
+		if n <= 0 {
+			return
+		}
 
-	raw := string(buf[:n])
-	msg := gamespy.ParseMessage(raw)
+		raw := string(buf[:n])
+		msg := gamespy.ParseMessage(raw)
 
-	// Handle GameSpy \list\ request
-	if msg.Has("list") || strings.Contains(raw, "\\list\\") {
-		l.handleListRequest(conn, msg)
-		return
+		// Handle GameSpy \list\ request
+		if msg.Has("list") || strings.Contains(raw, "\\list\\") {
+			l.handleListRequest(conn, msg)
+			return
+		}
+
+		// If client sent \validate\ or other initial handshake without \list yet,
+		// stay open and wait for the subsequent \list\ command
+		if msg.Has("validate") {
+			continue
+		}
 	}
 }
 

@@ -126,10 +126,23 @@ func (l *DualUDPListener) handleGameSpyPacket(raw string, remoteAddr *net.UDPAdd
 			return
 		}
 
-		// Otherwise, send GameSpy challenge: \secure\<challenge>
+		// Standard GameSpy v0 challenge per spec (Appendix B): \basic\\secure\<challenge>\
 		challenge := "ABCDEF" // 6-char challenge
-		resp := fmt.Sprintf("\\secure\\%s", challenge)
+		var resp string
+		if msg.Has("echo") {
+			resp = fmt.Sprintf("\\basic\\\\secure\\%s\\echo_reply\\%s\\", challenge, msg.Get("echo"))
+		} else {
+			resp = fmt.Sprintf("\\basic\\\\secure\\%s\\", challenge)
+		}
+
+		// Send to the source socket
 		_, _ = l.conn.WriteToUDP([]byte(resp), remoteAddr)
+
+		// Also send to advertised query port if different from source port
+		if port > 0 && port != remoteAddr.Port {
+			queryAddr := &net.UDPAddr{IP: remoteAddr.IP, Port: port}
+			_, _ = l.conn.WriteToUDP([]byte(resp), queryAddr)
+		}
 		return
 	}
 
@@ -141,7 +154,7 @@ func (l *DualUDPListener) handleGameSpyPacket(raw string, remoteAddr *net.UDPAdd
 
 	// Ping/Echo query directed at master: \echo\<msg>
 	if msg.Has("echo") {
-		resp := fmt.Sprintf("\\echo_reply\\%s", msg.Get("echo"))
+		resp := fmt.Sprintf("\\echo_reply\\%s\\", msg.Get("echo"))
 		_, _ = l.conn.WriteToUDP([]byte(resp), remoteAddr)
 		return
 	}
