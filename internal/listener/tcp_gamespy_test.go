@@ -1,12 +1,14 @@
 package listener
 
 import (
+	"fmt"
 	"net"
 	"strings"
 	"testing"
 	"time"
 
 	"master-server/internal/games"
+	"master-server/internal/gamespy"
 	"master-server/internal/registry"
 )
 
@@ -40,10 +42,7 @@ func TestTCPGameSpyListener_MultiStepHandshake(t *testing.T) {
 
 	addr := ln.Addr().String()
 
-	// 1. Test multi-packet handshake:
-	// Client receives \basic\\secure\TXKOAT\
-	// Client sends \gamename\ut\location\0\validate\Sen5c0WR\final\
-	// Client sends \list\cmp\gamename\ut\final\
+	// 1. Test multi-packet handshake with random challenge and cipher validation:
 	conn, err := net.DialTimeout("tcp", addr, 2*time.Second)
 	if err != nil {
 		t.Fatalf("failed to connect: %v", err)
@@ -55,13 +54,24 @@ func TestTCPGameSpyListener_MultiStepHandshake(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to read initial challenge: %v", err)
 	}
-	challenge := string(buf[:n])
-	if !strings.Contains(challenge, "\\basic\\\\secure\\") {
-		t.Errorf("expected \\basic\\\\secure\\ in initial greeting, got %q", challenge)
+	greeting := string(buf[:n])
+	if !strings.Contains(greeting, "\\basic\\\\secure\\") {
+		t.Errorf("expected \\basic\\\\secure\\ in initial greeting, got %q", greeting)
 	}
 
+	challenge := gamespy.ParseMessage(greeting).Get("secure")
+	if len(challenge) != 6 {
+		t.Fatalf("expected 6-char challenge, got %q", challenge)
+	}
+
+	utGame, ok := reg.Lookup("ut")
+	if !ok || utGame.Cipher == "" {
+		t.Fatalf("expected ut cipher in catalog")
+	}
+	token := gamespy.GenerateValidate(utGame.Cipher, challenge, 0)
+
 	// Send Packet 1: validate token
-	_, err = conn.Write([]byte("\\gamename\\ut\\location\\0\\validate\\Sen5c0WR\\final\\"))
+	_, err = conn.Write([]byte(fmt.Sprintf("\\gamename\\ut\\location\\0\\validate\\%s\\final\\", token)))
 	if err != nil {
 		t.Fatalf("failed to write validate packet: %v", err)
 	}
@@ -83,6 +93,52 @@ func TestTCPGameSpyListener_MultiStepHandshake(t *testing.T) {
 	listResp := string(listBuf[:n])
 	if !strings.Contains(listResp, "\\ip\\1.2.3.4:7777") || !strings.Contains(listResp, "\\final\\") {
 		t.Errorf("expected server list with 1.2.3.4:7777 and \\final\\, got %q", listResp)
+	}
+}
+
+func TestTCPGameSpyListener_InvalidValidateRejected(t *testing.T) {
+	store := registry.NewStore(true)
+	store.RegisterHeartbeat("1.2.3.4", 7777, "ut")
+
+	reg, err := games.NewRegistry()
+	if err != nil {
+		t.Fatalf("failed to init games registry: %v", err)
+	}
+
+	listener := NewTCPGameSpyListener("127.0.0.1:0", store, reg)
+
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("failed to listen on random port: %v", err)
+	}
+	listener.listener = ln
+	defer ln.Close()
+
+	go func() {
+		for {
+			conn, err := ln.Accept()
+			if err != nil {
+				return
+			}
+			go listener.handleConnection(conn)
+		}
+	}()
+
+	conn, err := net.DialTimeout("tcp", ln.Addr().String(), 2*time.Second)
+	if err != nil {
+		t.Fatalf("failed to connect: %v", err)
+	}
+	defer conn.Close()
+
+	buf := make([]byte, 1024)
+	_, _ = conn.Read(buf) // read greeting
+
+	// Send invalid validate token followed by list request
+	_, _ = conn.Write([]byte("\\gamename\\ut\\validate\\INVALIDTOKEN\\list\\cmp\\final\\"))
+	_ = conn.SetReadDeadline(time.Now().Add(500 * time.Millisecond))
+	n, _ := conn.Read(buf)
+	if n > 0 && strings.Contains(string(buf[:n]), "1.2.3.4") {
+		t.Errorf("expected invalid validate token to be rejected, got %q", string(buf[:n]))
 	}
 }
 

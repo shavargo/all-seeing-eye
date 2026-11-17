@@ -1,5 +1,35 @@
 package gamespy
 
+import "crypto/rand"
+
+const challengeAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+
+// GenerateChallenge returns a random 6-character alphanumeric GameSpy challenge string.
+func GenerateChallenge() string {
+	var b [6]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		return "TXKOAT"
+	}
+	for i := range b {
+		b[i] = challengeAlphabet[int(b[i])%len(challengeAlphabet)]
+	}
+	return string(b[:])
+}
+
+// VerifyChallenge checks whether validateToken matches the expected GameSpy response
+// for the given cipher and challenge across enctype 0, 1, or 2.
+func VerifyChallenge(cipher, challenge, validateToken string) bool {
+	if cipher == "" || challenge == "" || validateToken == "" {
+		return false
+	}
+	for enctype := 0; enctype <= 2; enctype++ {
+		if GenerateValidate(cipher, challenge, enctype) == validateToken {
+			return true
+		}
+	}
+	return false
+}
+
 // enctype1Data contains the precomputed table for enctype 1 from Luigi Auriemma's gsmsalg.
 var enctype1Data = []byte{
 	0x01, 0xba, 0xfa, 0xb2, 0x51, 0x00, 0x54, 0x80, 0x75, 0x16, 0x8e, 0x8e, 0x02, 0x08, 0x36, 0xa5,

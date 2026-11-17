@@ -226,3 +226,79 @@ func TestLoadFromFileLegacyMigration(t *testing.T) {
 		t.Errorf("expected ID to be 1.2.3.4:7778, got %s", servers[0].ID)
 	}
 }
+
+func TestSnapshotRebuildOnHeartbeat(t *testing.T) {
+	s := NewStore(true)
+	if s.GetSnapshot().TotalServers != 0 {
+		t.Fatalf("expected 0 servers initially")
+	}
+
+	s.RegisterHeartbeat("10.0.0.1", 27960, "quake3")
+	snap := s.GetSnapshot()
+	if snap.TotalServers != 1 {
+		t.Fatalf("expected GetSnapshot() to immediately include server after RegisterHeartbeat, got %d", snap.TotalServers)
+	}
+	if len(snap.Servers) != 1 || snap.Servers[0].IP != "10.0.0.1" {
+		t.Fatalf("expected server 10.0.0.1 in snapshot, got %+v", snap.Servers)
+	}
+}
+
+func TestPendingHeartbeatAndVerify(t *testing.T) {
+	s := NewStore(true)
+
+	srv, isNew := s.RegisterPendingHeartbeat("10.0.0.2", 7778, "ut99")
+	if !isNew || srv == nil {
+		t.Fatalf("expected new pending server")
+	}
+	if srv.Verified {
+		t.Fatalf("expected pending server to have Verified=false")
+	}
+	if len(s.GetServersByGame("ut99")) != 0 {
+		t.Fatalf("expected pending server to be excluded from GetServersByGame")
+	}
+	if s.GetSnapshot().TotalServers != 0 {
+		t.Fatalf("expected pending server to be excluded from GetSnapshot")
+	}
+
+	if !s.VerifyServer("10.0.0.2", 7778) {
+		t.Fatalf("expected VerifyServer to succeed")
+	}
+	if len(s.GetServersByGame("ut99")) != 1 {
+		t.Fatalf("expected verified server in GetServersByGame")
+	}
+	if s.GetSnapshot().TotalServers != 1 {
+		t.Fatalf("expected verified server in GetSnapshot")
+	}
+}
+
+func TestPruneAndRemoveServer(t *testing.T) {
+	s := NewStore(true)
+
+	srv, _ := s.RegisterHeartbeat("10.0.0.3", 27960, "quake3")
+	s.RegisterHeartbeat("10.0.0.4", 31510, "kingpin")
+
+	if s.GetSnapshot().TotalServers != 2 {
+		t.Fatalf("expected 2 servers in snapshot")
+	}
+
+	// Age out 10.0.0.3
+	s.mu.Lock()
+	srv.LastHeartbeat = time.Now().Add(-15 * time.Minute)
+	s.mu.Unlock()
+
+	pruned := s.Prune(12 * time.Minute)
+	if pruned != 1 {
+		t.Fatalf("expected 1 stale server pruned, got %d", pruned)
+	}
+	if s.GetSnapshot().TotalServers != 1 {
+		t.Fatalf("expected 1 server remaining in snapshot after prune, got %d", s.GetSnapshot().TotalServers)
+	}
+
+	// Immediate removal via RemoveServer
+	if !s.RemoveServer("10.0.0.4", 31510, "kingpin") {
+		t.Fatalf("expected RemoveServer to return true")
+	}
+	if s.GetSnapshot().TotalServers != 0 {
+		t.Fatalf("expected 0 servers in snapshot after RemoveServer, got %d", s.GetSnapshot().TotalServers)
+	}
+}

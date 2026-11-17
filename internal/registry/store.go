@@ -39,7 +39,7 @@ func NewStore(allowPrivate bool) *Store {
 // AddBlacklist adds IP addresses to the blocklist and immediately purges them from the store.
 func (s *Store) AddBlacklist(ips ...string) {
 	s.mu.Lock()
-	defer s.mu.Unlock()
+	purged := false
 
 	for _, raw := range ips {
 		trimmed := strings.TrimSpace(raw)
@@ -53,8 +53,14 @@ func (s *Store) AddBlacklist(ips ...string) {
 			if srv.IP == trimmed {
 				delete(s.servers, k)
 				s.dirty.Store(true)
+				purged = true
 			}
 		}
+	}
+	s.mu.Unlock()
+
+	if purged {
+		s.RebuildSnapshot()
 	}
 }
 
@@ -90,8 +96,25 @@ func isPrivateIP(ipStr string) bool {
 	return false
 }
 
-// RegisterHeartbeat records an incoming UDP heartbeat.
+// RegisterHeartbeat records an incoming UDP heartbeat for a verified/bypass game and publishes a fresh snapshot.
+// Note: RebuildSnapshot is called synchronously after releasing s.mu.Unlock() (correctness-first).
+// Since RebuildSnapshot only acquires RLock, concurrent readers are never blocked.
 func (s *Store) RegisterHeartbeat(ip string, queryPort int, gamename string) (*Server, bool) {
+	return s.registerHeartbeatInternal(ip, queryPort, 0, gamename, true)
+}
+
+// RegisterPendingHeartbeat records an incoming UDP heartbeat in unverified (pending challenge) state.
+// The server will not appear in GetServersByGame or GetSnapshot until VerifyServer succeeds.
+func (s *Store) RegisterPendingHeartbeat(ip string, queryPort int, gamename string) (*Server, bool) {
+	return s.registerHeartbeatInternal(ip, queryPort, 0, gamename, false)
+}
+
+// RegisterSeededServer records a server imported from an upstream mirror with explicit query and game ports.
+func (s *Store) RegisterSeededServer(ip string, queryPort int, gamePort int, gamename string) (*Server, bool) {
+	return s.registerHeartbeatInternal(ip, queryPort, gamePort, gamename, true)
+}
+
+func (s *Store) registerHeartbeatInternal(ip string, queryPort int, explicitGamePort int, gamename string, verified bool) (*Server, bool) {
 	if s.IsBlacklisted(ip) {
 		return nil, false
 	}
@@ -111,13 +134,14 @@ func (s *Store) RegisterHeartbeat(ip string, queryPort int, gamename string) (*S
 		actualQueryPort = queryPort - 10
 		actualGamePort = queryPort
 	}
+	if explicitGamePort > 0 {
+		actualGamePort = explicitGamePort
+	}
 
 	key := fmt.Sprintf("%s:%d", ip, actualQueryPort)
 	now := time.Now()
 
 	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	s.dirty.Store(true)
 
 	srv, exists := s.servers[key]
@@ -129,23 +153,104 @@ func (s *Store) RegisterHeartbeat(ip string, queryPort int, gamename string) (*S
 			GamePort:      actualGamePort,
 			Gamename:      gn,
 			Hostname:      key,
-			Verified:      true,
+			Verified:      verified,
 			LastHeartbeat: now,
 			CVars:         make(map[string]string),
 		}
 		s.servers[key] = srv
+		s.mu.Unlock()
+		if verified {
+			s.RebuildSnapshot()
+		}
 		return srv, true
 	}
 
+	wasVerified := srv.Verified
 	srv.LastHeartbeat = now
-	srv.Verified = true
+	srv.Verified = verified
 	if gn != "" {
 		srv.Gamename = gn
 	}
 	if actualGamePort > 0 {
 		srv.GamePort = actualGamePort
 	}
+	s.mu.Unlock()
+
+	if verified || wasVerified {
+		s.RebuildSnapshot()
+	}
 	return srv, false
+}
+
+// VerifyServer marks a pending server as verified after passing a GameSpy \secure\ / \validate\ challenge
+// and publishes a fresh snapshot.
+func (s *Store) VerifyServer(ip string, queryPort int) bool {
+	key := fmt.Sprintf("%s:%d", ip, queryPort)
+	now := time.Now()
+
+	s.mu.Lock()
+	srv, exists := s.servers[key]
+	if !exists {
+		for _, candidate := range s.servers {
+			if candidate.IP == ip && (candidate.QueryPort == queryPort || candidate.GamePort == queryPort) {
+				srv = candidate
+				exists = true
+				break
+			}
+		}
+	}
+	if !exists {
+		s.mu.Unlock()
+		return false
+	}
+
+	srv.Verified = true
+	srv.LastHeartbeat = now
+	s.dirty.Store(true)
+	s.mu.Unlock()
+
+	s.RebuildSnapshot()
+	return true
+}
+
+// RemoveServer immediately deletes a server from the store (e.g. on \statechanged\ exiting)
+// and publishes a fresh snapshot.
+func (s *Store) RemoveServer(ip string, port int, gamename string) bool {
+	gn := strings.ToLower(gamename)
+	actualQueryPort := port
+	if gn == "kingpin" && port >= 31510 && port <= 31599 {
+		actualQueryPort = port - 10
+	}
+
+	s.mu.Lock()
+	removed := false
+
+	key := fmt.Sprintf("%s:%d", ip, actualQueryPort)
+	if _, ok := s.servers[key]; ok {
+		delete(s.servers, key)
+		removed = true
+	}
+	rawKey := fmt.Sprintf("%s:%d", ip, port)
+	if _, ok := s.servers[rawKey]; ok {
+		delete(s.servers, rawKey)
+		removed = true
+	}
+	for k, srv := range s.servers {
+		if srv.IP == ip && (srv.QueryPort == port || srv.GamePort == port || srv.QueryPort == actualQueryPort) {
+			delete(s.servers, k)
+			removed = true
+		}
+	}
+
+	if removed {
+		s.dirty.Store(true)
+	}
+	s.mu.Unlock()
+
+	if removed {
+		s.RebuildSnapshot()
+	}
+	return removed
 }
 
 // UpdateServerInfo updates a server's metadata (hostname, map, players, cvars).
@@ -164,12 +269,9 @@ func (s *Store) UpdateServerInfo(
 	key := fmt.Sprintf("%s:%d", ip, queryPort)
 
 	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	s.dirty.Store(true)
-
 	srv, exists := s.servers[key]
 	if !exists {
+		s.mu.Unlock()
 		return
 	}
 
@@ -205,6 +307,9 @@ func (s *Store) UpdateServerInfo(
 		srv.Gametype = gt
 	}
 	s.dirty.Store(true)
+	s.mu.Unlock()
+
+	s.RebuildSnapshot()
 }
 
 // GetAllServers returns a slice of all registered servers in the store.
@@ -277,8 +382,6 @@ func matchesGameAlias(srvGame, queryGame string) bool {
 // Prune removes servers that have not sent a heartbeat within the TTL.
 func (s *Store) Prune(ttl time.Duration) int {
 	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	cutoff := time.Now().Add(-ttl)
 	pruned := 0
 	for k, srv := range s.servers {
@@ -289,6 +392,11 @@ func (s *Store) Prune(ttl time.Duration) int {
 	}
 	if pruned > 0 {
 		s.dirty.Store(true)
+	}
+	s.mu.Unlock()
+
+	if pruned > 0 {
+		s.RebuildSnapshot()
 	}
 	return pruned
 }

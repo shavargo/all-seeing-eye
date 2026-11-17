@@ -23,9 +23,12 @@ func ParseMessage(raw string) *Message {
 		start = 1
 	}
 
-	for i := start; i+1 < len(parts); i += 2 {
+	for i := start; i < len(parts); i += 2 {
 		k := strings.ToLower(strings.TrimSpace(parts[i]))
-		v := strings.TrimSpace(parts[i+1])
+		v := ""
+		if i+1 < len(parts) {
+			v = strings.TrimSpace(parts[i+1])
+		}
 		if k != "" {
 			m.KV[k] = v
 		}

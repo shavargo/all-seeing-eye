@@ -43,6 +43,15 @@ func getEnvInt(key string, defaultVal int) int {
 	return defaultVal
 }
 
+func getEnvDuration(key string, defaultVal time.Duration) time.Duration {
+	if val := os.Getenv(key); val != "" {
+		if d, err := time.ParseDuration(val); err == nil && d > 0 {
+			return d
+		}
+	}
+	return defaultVal
+}
+
 func main() {
 	log.Println("==================================================")
 	log.Println(" Starting OpenMaster Universal Master Daemon")
@@ -58,6 +67,8 @@ func main() {
 	seedURLsRaw := getEnv("SEED_URLS", "https://raw.githubusercontent.com/shavargo/retro-server-mirror/main/servers.json")
 	dbFile := getEnv("DB_FILE", "data/servers.json")
 	blacklistRaw := getEnv("BLACKLIST_IPS", "88.97.18.58")
+	heartbeatTTL := getEnvDuration("HEARTBEAT_TTL", 12*time.Minute)
+	pruneInterval := getEnvDuration("PRUNE_INTERVAL", 1*time.Minute)
 
 	// 1. Initialize Game Database
 	gameReg, err := games.NewRegistry()
@@ -126,11 +137,26 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
-	// Start Seeder & AutoSave
+	// Start Seeder, AutoSave & Prune Loop
 	go serverSeeder.Start(ctx)
 	if dbFile != "" {
 		go store.StartAutoSave(ctx, 30*time.Second, dbFile)
 	}
+	go func() {
+		ticker := time.NewTicker(pruneInterval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				if pruned := store.Prune(heartbeatTTL); pruned > 0 {
+					store.RebuildSnapshot()
+					log.Printf("[Store] Pruned %d expired servers (TTL=%s)", pruned, heartbeatTTL)
+				}
+			}
+		}
+	}()
 
 	// Start Listeners
 	go func() {

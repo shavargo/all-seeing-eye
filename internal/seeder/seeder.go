@@ -586,13 +586,8 @@ func (s *Seeder) registerEntry(game, ip string, port, queryPort int) bool {
 		}
 	}
 
-	srv, _ := s.store.RegisterHeartbeat(ip, qPort, game)
-	if srv != nil {
-		srv.GamePort = port
-		// In manual-probing mode, mark all servers ingested from upstream mirrors verified
-		// so they are immediately queryable without sending unsolicited UDP pings across the internet.
-		srv.Verified = true
-		return true
-	}
-	return false
+	// In manual-probing mode, mark all servers ingested from upstream mirrors verified
+	// so they are immediately queryable without sending unsolicited UDP pings across the internet.
+	srv, _ := s.store.RegisterSeededServer(ip, qPort, port, game)
+	return srv != nil
 }

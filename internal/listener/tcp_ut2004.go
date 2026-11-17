@@ -154,12 +154,9 @@ func (l *TCPUT2004Listener) handleConnection(conn net.Conn) {
 			info := parseUT2004ServerInfo(data)
 			if info != nil && info.port > 0 {
 				queryPort := info.port + 10 // UT2004 query port standard is GamePort + 10
-				srv, _ := l.store.RegisterHeartbeat(host, queryPort, "ut2004")
+				srv, _ := l.store.RegisterSeededServer(host, queryPort, info.port, "ut2004")
 				if srv != nil {
-					srv.GamePort = info.port
-					srv.Hostname = info.name
-					srv.Gametype = info.gametype
-					srv.Verified = true
+					l.store.UpdateServerInfo(host, queryPort, info.port, info.name, "", 0, 0, 0, nil, map[string]string{"gametype": info.gametype})
 				}
 				log.Printf("[TCP 28902] %s UT2004 server registered: name=%q port=%d gametype=%q", remoteAddr, info.name, info.port, info.gametype)
 			}
