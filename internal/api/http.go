@@ -131,7 +131,7 @@ func (s *Server) handleServers(w http.ResponseWriter, r *http.Request) {
 	var filtered []registry.Server
 	totalPlayers := 0
 	for _, srv := range snap.Servers {
-		if srv.Gamename == gameFilter {
+		if registry.MatchesGame(srv.Gamename, gameFilter) {
 			filtered = append(filtered, srv)
 			totalPlayers += srv.Players
 		}

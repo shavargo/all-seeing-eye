@@ -105,16 +105,8 @@ func (l *DualUDPListener) handlePacket(packet []byte, remoteAddr *net.UDPAddr) {
 		return
 	}
 
-	// 3. ASCII Quake text packet (e.g. "heartbeat KingpinQ3-1" or "getservers ...")
-	text := string(packet)
-	if strings.HasPrefix(text, "getservers ") {
-		l.sendQuakeServerList(remoteAddr, "kingpin")
-		return
-	}
-	if strings.HasPrefix(text, "heartbeat ") {
-		l.store.RegisterHeartbeat(remoteAddr.IP.String(), remoteAddr.Port, "kingpin")
-		return
-	}
+	// 3. Raw ASCII Quake 2 / Kingpin packet (e.g. "query\n", "query\x00", "getservers ...", "heartbeat ...", "shutdown")
+	l.handleQuake2Packet(packet, remoteAddr)
 }
 
 // handleGameSpyPacket handles standard \key\value\ GameSpy packets.
@@ -335,19 +327,32 @@ func (l *DualUDPListener) matchesCipher(hbGamename, pktGamename, primaryCipher, 
 	return false
 }
 
-// handleQuake2Packet handles Quake 2 / Kingpin in-game binary queries.
+// handleQuake2Packet handles Quake 2 / Kingpin in-game binary and ASCII queries.
 func (l *DualUDPListener) handleQuake2Packet(payload []byte, remoteAddr *net.UDPAddr) {
-	msg := string(payload)
+	msg := strings.Trim(string(payload), "\x00 \t\r\n")
+	lower := strings.ToLower(msg)
 
-	// In-game browser query: "query\n" or "getservers"
-	if strings.HasPrefix(msg, "query") || strings.HasPrefix(msg, "getservers") {
+	// In-game browser query: "query", "query\n", or "getservers"
+	if strings.HasPrefix(lower, "query") || strings.HasPrefix(lower, "getservers") {
 		l.sendQuakeServerList(remoteAddr, "kingpin")
 		return
 	}
 
 	// Heartbeat from server: "heartbeat\n"
-	if strings.HasPrefix(msg, "heartbeat") {
+	if strings.HasPrefix(lower, "heartbeat") {
 		l.store.RegisterHeartbeat(remoteAddr.IP.String(), remoteAddr.Port, "kingpin")
+		return
+	}
+
+	// Graceful shutdown from Quake 2 / Kingpin server: "shutdown\n"
+	if strings.HasPrefix(lower, "shutdown") {
+		l.store.RemoveServer(remoteAddr.IP.String(), remoteAddr.Port, "kingpin")
+		return
+	}
+
+	// Ping check: "ping" -> "\xff\xff\xff\xffack"
+	if strings.HasPrefix(lower, "ping") {
+		_, _ = l.conn.WriteToUDP([]byte("\xff\xff\xff\xffack"), remoteAddr)
 		return
 	}
 }

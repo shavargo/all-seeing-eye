@@ -1,9 +1,13 @@
 package registry
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
+	_ "embed"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -15,14 +19,18 @@ import (
 	"time"
 )
 
+//go:embed seed_servers.json.gz
+var embeddedSeedGzip []byte
+
 // Store manages in-memory game servers with thread-safe reads and atomic snapshot publishing.
 type Store struct {
-	mu           sync.RWMutex
-	servers      map[string]*Server
-	blacklist    map[string]struct{}
-	snapshot     atomic.Pointer[Snapshot]
-	allowPrivate bool
-	dirty        atomic.Bool
+	mu            sync.RWMutex
+	servers       map[string]*Server
+	blacklist     map[string]struct{}
+	snapshot      atomic.Pointer[Snapshot]
+	snapshotStale atomic.Bool
+	allowPrivate  bool
+	dirty         atomic.Bool
 }
 
 // NewStore creates a new server store.
@@ -60,7 +68,7 @@ func (s *Store) AddBlacklist(ips ...string) {
 	s.mu.Unlock()
 
 	if purged {
-		s.RebuildSnapshot()
+		s.snapshotStale.Store(true)
 	}
 }
 
@@ -96,9 +104,9 @@ func isPrivateIP(ipStr string) bool {
 	return false
 }
 
-// RegisterHeartbeat records an incoming UDP heartbeat for a verified/bypass game and publishes a fresh snapshot.
-// Note: RebuildSnapshot is called synchronously after releasing s.mu.Unlock() (correctness-first).
-// Since RebuildSnapshot only acquires RLock, concurrent readers are never blocked.
+// RegisterHeartbeat records an incoming UDP heartbeat for a verified/bypass game and marks the snapshot stale.
+// Note: To prevent O(N^2 log N) sorting contention under 27,000-server mirror syncs and heartbeat bursts,
+// mutations set snapshotStale=true in O(1) time and GetSnapshot() lazily rebuilds on demand.
 func (s *Store) RegisterHeartbeat(ip string, queryPort int, gamename string) (*Server, bool) {
 	return s.registerHeartbeatInternal(ip, queryPort, 0, gamename, true)
 }
@@ -160,7 +168,7 @@ func (s *Store) registerHeartbeatInternal(ip string, queryPort int, explicitGame
 		s.servers[key] = srv
 		s.mu.Unlock()
 		if verified {
-			s.RebuildSnapshot()
+			s.snapshotStale.Store(true)
 		}
 		return srv, true
 	}
@@ -177,13 +185,13 @@ func (s *Store) registerHeartbeatInternal(ip string, queryPort int, explicitGame
 	s.mu.Unlock()
 
 	if verified || wasVerified {
-		s.RebuildSnapshot()
+		s.snapshotStale.Store(true)
 	}
 	return srv, false
 }
 
 // VerifyServer marks a pending server as verified after passing a GameSpy \secure\ / \validate\ challenge
-// and publishes a fresh snapshot.
+// and marks the snapshot stale for immediate publication on next read.
 func (s *Store) VerifyServer(ip string, queryPort int) bool {
 	key := fmt.Sprintf("%s:%d", ip, queryPort)
 	now := time.Now()
@@ -209,12 +217,12 @@ func (s *Store) VerifyServer(ip string, queryPort int) bool {
 	s.dirty.Store(true)
 	s.mu.Unlock()
 
-	s.RebuildSnapshot()
+	s.snapshotStale.Store(true)
 	return true
 }
 
 // RemoveServer immediately deletes a server from the store (e.g. on \statechanged\ exiting)
-// and publishes a fresh snapshot.
+// and marks the snapshot stale.
 func (s *Store) RemoveServer(ip string, port int, gamename string) bool {
 	gn := strings.ToLower(gamename)
 	actualQueryPort := port
@@ -248,7 +256,7 @@ func (s *Store) RemoveServer(ip string, port int, gamename string) bool {
 	s.mu.Unlock()
 
 	if removed {
-		s.RebuildSnapshot()
+		s.snapshotStale.Store(true)
 	}
 	return removed
 }
@@ -309,7 +317,7 @@ func (s *Store) UpdateServerInfo(
 	s.dirty.Store(true)
 	s.mu.Unlock()
 
-	s.RebuildSnapshot()
+	s.snapshotStale.Store(true)
 }
 
 // GetAllServers returns a slice of all registered servers in the store.
@@ -336,11 +344,16 @@ func (s *Store) GetServersByGame(gamename string) []Server {
 	gn := strings.ToLower(gamename)
 	var list []Server
 	for _, srv := range s.servers {
-		if srv.Verified && (gn == "all" || srv.Gamename == gn || matchesGameAlias(srv.Gamename, gn)) {
+		if srv.Verified && (gn == "all" || MatchesGame(srv.Gamename, gn)) {
 			list = append(list, *srv)
 		}
 	}
 	return list
+}
+
+// MatchesGame reports whether srvGame matches queryGame directly or via known engine/GameSpy aliases.
+func MatchesGame(srvGame, queryGame string) bool {
+	return matchesGameAlias(srvGame, queryGame)
 }
 
 func matchesGameAlias(srvGame, queryGame string) bool {
@@ -351,22 +364,39 @@ func matchesGameAlias(srvGame, queryGame string) bool {
 	}
 
 	aliases := map[string][]string{
-		"cod":         {"callofduty"},
-		"callofduty":  {"cod"},
-		"coduo":       {"callofdutyuo"},
-		"callofdutyuo": {"coduo"},
-		"cod2":        {"callofduty2"},
-		"callofduty2": {"cod2"},
-		"cod4":        {"callofduty4", "callofduty4modernwarfare"},
-		"ut":          {"ut99"},
-		"ut99":        {"ut"},
-		"ut2004":      {"ut2"},
-		"ut2":         {"ut2004"},
-		"q3a":         {"quake3"},
-		"quake3":      {"q3a"},
-		"q2":          {"quake2"},
-		"quake2":      {"q2"},
-		"kingpin":     {"kp"},
+		"cod":                      {"callofduty"},
+		"callofduty":               {"cod"},
+		"coduo":                    {"callofdutyuo"},
+		"callofdutyuo":             {"coduo"},
+		"cod2":                     {"callofduty2"},
+		"callofduty2":              {"cod2"},
+		"cod4":                     {"callofduty4", "callofduty4modernwarfare"},
+		"callofduty4":              {"cod4", "callofduty4modernwarfare"},
+		"callofduty4modernwarfare": {"cod4", "callofduty4"},
+		"ut":                       {"ut99"},
+		"ut99":                     {"ut"},
+		"ut2004":                   {"ut2", "ut2003"},
+		"ut2":                      {"ut2004", "ut2003"},
+		"ut2003":                   {"ut2004", "ut2"},
+		"q3a":                      {"quake3", "quake3arena"},
+		"quake3arena":              {"quake3", "q3a"},
+		"quake3":                   {"q3a", "quake3arena"},
+		"q2":                       {"quake2"},
+		"quake2":                   {"q2"},
+		"qw":                       {"quakeworld"},
+		"quakeworld":               {"qw"},
+		"kingpin":                  {"kp"},
+		"kp":                       {"kingpin"},
+		"bf1942":                   {"bfield1942"},
+		"bfield1942":               {"bf1942"},
+		"et":                       {"wolfet", "enemyterritory"},
+		"wolfet":                   {"et", "enemyterritory"},
+		"enemyterritory":           {"et", "wolfet"},
+		"rtcw":                     {"wolf", "wolfmp"},
+		"wolf":                     {"rtcw", "wolfmp"},
+		"wolfmp":                   {"rtcw", "wolf"},
+		"ef2":                      {"eliteforce2"},
+		"eliteforce2":              {"ef2"},
 	}
 
 	if match, ok := aliases[q]; ok {
@@ -396,13 +426,14 @@ func (s *Store) Prune(ttl time.Duration) int {
 	s.mu.Unlock()
 
 	if pruned > 0 {
-		s.RebuildSnapshot()
+		s.snapshotStale.Store(true)
 	}
 	return pruned
 }
 
 // RebuildSnapshot constructs an immutable public snapshot and publishes it atomically.
 func (s *Store) RebuildSnapshot() {
+	s.snapshotStale.Store(false)
 	s.mu.RLock()
 	activeGamesMap := make(map[string]struct{})
 	totalPlayers := 0
@@ -468,8 +499,11 @@ func (s *Store) RebuildSnapshot() {
 	s.snapshot.Store(snap)
 }
 
-// GetSnapshot returns the current atomic snapshot in O(1) time with zero lock contention.
+// GetSnapshot returns the current atomic snapshot, rebuilding on demand if mutations occurred since last build.
 func (s *Store) GetSnapshot() *Snapshot {
+	if s.snapshotStale.Load() {
+		s.RebuildSnapshot()
+	}
 	return s.snapshot.Load()
 }
 
@@ -548,6 +582,24 @@ func (s *Store) SaveToFile(path string) error {
 	return nil
 }
 
+// LoadEmbeddedSeed decompresses and merges the embedded baseline server catalog into the store.
+func (s *Store) LoadEmbeddedSeed() (int, error) {
+	if len(embeddedSeedGzip) == 0 {
+		return 0, nil
+	}
+	gr, err := gzip.NewReader(bytes.NewReader(embeddedSeedGzip))
+	if err != nil {
+		return 0, fmt.Errorf("gzip reader: %w", err)
+	}
+	defer gr.Close()
+
+	data, err := io.ReadAll(gr)
+	if err != nil {
+		return 0, fmt.Errorf("decompress embedded seed: %w", err)
+	}
+	return s.LoadFromBytes(data)
+}
+
 // LoadFromFile reads a JSON database file and restores all servers into the registry.
 func (s *Store) LoadFromFile(path string) (int, error) {
 	if path == "" {
@@ -562,6 +614,15 @@ func (s *Store) LoadFromFile(path string) (int, error) {
 		return 0, fmt.Errorf("failed to read db file %s: %w", path, err)
 	}
 
+	count, err := s.LoadFromBytes(data)
+	if err != nil {
+		return 0, fmt.Errorf("invalid json database format in %s", path)
+	}
+	return count, nil
+}
+
+// LoadFromBytes parses a JSON database payload and restores/merges servers into the registry.
+func (s *Store) LoadFromBytes(data []byte) (int, error) {
 	var servers []*Server
 
 	// 1. Try structured DatabaseRecord first
@@ -574,7 +635,7 @@ func (s *Store) LoadFromFile(path string) (int, error) {
 		if errRaw := json.Unmarshal(data, &rawServers); errRaw == nil && len(rawServers) > 0 {
 			servers = rawServers
 		} else {
-			return 0, fmt.Errorf("invalid json database format in %s", path)
+			return 0, fmt.Errorf("invalid json database format")
 		}
 	}
 
@@ -628,10 +689,9 @@ func (s *Store) LoadFromFile(path string) (int, error) {
 		}
 
 		// In passive directory mode, all restored servers are verified and served immediately.
+		// Refresh LastHeartbeat on startup load so restored entries have a full TTL grace window.
 		srv.Verified = true
-		if srv.LastHeartbeat.IsZero() {
-			srv.LastHeartbeat = time.Now()
-		}
+		srv.LastHeartbeat = time.Now()
 
 		if srv.ID == "" {
 			srv.ID = fmt.Sprintf("%s:%d", srv.IP, srv.QueryPort)
@@ -642,6 +702,38 @@ func (s *Store) LoadFromFile(path string) (int, error) {
 		if srv.Roster == nil {
 			srv.Roster = []Player{}
 		}
+
+		if existing, ok := s.servers[srv.ID]; ok {
+			existing.Verified = true
+			existing.LastHeartbeat = time.Now()
+			if srv.Hostname != "" && srv.Hostname != srv.ID && (existing.Hostname == "" || existing.Hostname == existing.ID) {
+				existing.Hostname = srv.Hostname
+			}
+			if srv.Map != "" && existing.Map == "" {
+				existing.Map = srv.Map
+			}
+			if srv.Gametype != "" && existing.Gametype == "" {
+				existing.Gametype = srv.Gametype
+			}
+			if srv.Players > existing.Players {
+				existing.Players = srv.Players
+			}
+			if srv.MaxPlayers > existing.MaxPlayers {
+				existing.MaxPlayers = srv.MaxPlayers
+			}
+			if srv.Ping > 0 && existing.Ping == 0 {
+				existing.Ping = srv.Ping
+			}
+			if len(srv.Roster) > len(existing.Roster) {
+				existing.Roster = srv.Roster
+			}
+			if len(srv.CVars) > len(existing.CVars) {
+				existing.CVars = srv.CVars
+			}
+			loadedCount++
+			continue
+		}
+
 		s.servers[srv.ID] = srv
 		loadedCount++
 	}

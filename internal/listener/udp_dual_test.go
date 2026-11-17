@@ -237,3 +237,60 @@ func TestDualUDPListener_StateChangedExiting(t *testing.T) {
 		t.Fatalf("expected empty statechanged shutdown to remove server and rebuild snapshot")
 	}
 }
+
+func TestDualUDPListener_Quake2RawAndOOB(t *testing.T) {
+	_, store, _, serverAddr, cleanup := startTestUDPListener(t)
+	defer cleanup()
+
+	clientConn, err := net.DialUDP("udp", nil, serverAddr)
+	if err != nil {
+		t.Fatalf("client dial error: %v", err)
+	}
+	defer clientConn.Close()
+
+	// 1. Register Kingpin server via raw ASCII heartbeat
+	_, _ = clientConn.Write([]byte("heartbeat\n\x00"))
+	deadline := time.Now().Add(1 * time.Second)
+	for time.Now().Before(deadline) {
+		if len(store.GetServersByGame("kingpin")) == 1 {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if len(store.GetServersByGame("kingpin")) != 1 {
+		t.Fatalf("expected 1 kingpin server registered via raw heartbeat")
+	}
+
+	// 2. Test raw "query\n" (no 0xFFFFFFFF prefix, as sent by vanilla Quake 2 / Kingpin client)
+	_, _ = clientConn.Write([]byte("query\n"))
+	_ = clientConn.SetReadDeadline(time.Now().Add(1 * time.Second))
+	buf := make([]byte, 1024)
+	n, err := clientConn.Read(buf)
+	if err != nil {
+		t.Fatalf("expected reply to raw query\\n, got error: %v", err)
+	}
+	if !strings.HasPrefix(string(buf[:n]), "\xff\xff\xff\xffservers\n") || n < 18 {
+		t.Fatalf("expected binary servers response with 6-byte entry, got %d bytes: %q", n, string(buf[:n]))
+	}
+
+	// 3. Test "ping" -> "\xff\xff\xff\xffack"
+	_, _ = clientConn.Write([]byte("\xff\xff\xff\xffping\n"))
+	_ = clientConn.SetReadDeadline(time.Now().Add(1 * time.Second))
+	n, err = clientConn.Read(buf)
+	if err != nil || string(buf[:n]) != "\xff\xff\xff\xffack" {
+		t.Fatalf("expected \\xff\\xff\\xff\\xffack, got %q (err=%v)", string(buf[:n]), err)
+	}
+
+	// 4. Test "shutdown\n" removes server immediately
+	_, _ = clientConn.Write([]byte("shutdown\n"))
+	deadline = time.Now().Add(1 * time.Second)
+	for time.Now().Before(deadline) {
+		if len(store.GetServersByGame("kingpin")) == 0 {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if len(store.GetServersByGame("kingpin")) != 0 {
+		t.Fatalf("expected shutdown packet to remove kingpin server")
+	}
+}

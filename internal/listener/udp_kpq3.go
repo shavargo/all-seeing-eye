@@ -128,38 +128,30 @@ func (l *KPQ3Listener) listenOnConn(ctx context.Context, conn *net.UDPConn, cfg 
 	}
 }
 
+const maxServersPerQ3Packet = 112
+
 func (l *KPQ3Listener) handlePacket(conn *net.UDPConn, packet []byte, remoteAddr *net.UDPAddr, defaultGame string) {
 	text := string(packet)
-	// Strip Quake 0xFF 0xFF 0xFF 0xFF prefix if present
+	// Strip Quake 0xFF 0xFF 0xFF 0xFF prefix if present, plus trailing C null bytes and whitespace
 	text = strings.TrimPrefix(text, "\xff\xff\xff\xff")
-	text = strings.TrimSpace(text)
+	text = strings.Trim(text, "\x00 \t\r\n")
+	lower := strings.ToLower(text)
+
+	// Graceful shutdown from idTech 3 server: "flatline" or "shutdown"
+	if strings.HasPrefix(lower, "flatline") || strings.HasPrefix(lower, "shutdown") {
+		l.store.RemoveServer(remoteAddr.IP.String(), remoteAddr.Port, defaultGame)
+		return
+	}
 
 	// In-game client query: getservers [gamename/protocol] [protocol] [empty] [full]
-	if strings.HasPrefix(text, "getservers") {
+	if strings.HasPrefix(lower, "getservers") {
 		parts := strings.Fields(text)
 		game := defaultGame
 		if len(parts) > 1 {
-			candidate := strings.ToLower(parts[1])
+			candidate := strings.ToLower(strings.Trim(parts[1], "\x00"))
 			// If not a pure number (protocol version), map engine/mod identifiers
-			if _, err := strconv.Atoi(candidate); err != nil {
-				switch candidate {
-				case "kingpinq3-1", "darkplaces":
-					game = "kingpin"
-				case "quakearena-1", "q3a":
-					game = "quake3"
-				case "wolf-1":
-					game = "rtcw"
-				case "et-1":
-					game = "et"
-				case "cod-1":
-					game = "cod"
-				case "cod2-1":
-					game = "cod2"
-				case "cod4-1":
-					game = "cod4"
-				default:
-					game = candidate
-				}
+			if _, err := strconv.Atoi(candidate); err != nil && candidate != "empty" && candidate != "full" {
+				game = resolveIDTech3Game(candidate, defaultGame)
 			}
 		}
 		l.sendQ3ServerList(conn, remoteAddr, game)
@@ -167,30 +159,17 @@ func (l *KPQ3Listener) handlePacket(conn *net.UDPConn, packet []byte, remoteAddr
 	}
 
 	// Server heartbeat: heartbeat <gamename>\n
-	if strings.HasPrefix(text, "heartbeat") {
+	if strings.HasPrefix(lower, "heartbeat") {
 		parts := strings.Fields(text)
 		game := defaultGame
 		if len(parts) > 1 {
-			candidate := strings.ToLower(parts[1])
+			candidate := strings.ToLower(strings.Trim(parts[1], "\x00"))
+			if candidate == "flatline" || candidate == "dead" || candidate == "shutdown" {
+				l.store.RemoveServer(remoteAddr.IP.String(), remoteAddr.Port, defaultGame)
+				return
+			}
 			if _, err := strconv.Atoi(candidate); err != nil {
-				switch candidate {
-				case "kingpinq3-1", "darkplaces":
-					game = "kingpin"
-				case "quakearena-1", "q3a":
-					game = "quake3"
-				case "wolf-1":
-					game = "rtcw"
-				case "et-1":
-					game = "et"
-				case "cod-1":
-					game = "cod"
-				case "cod2-1":
-					game = "cod2"
-				case "cod4-1":
-					game = "cod4"
-				default:
-					game = candidate
-				}
+				game = resolveIDTech3Game(candidate, defaultGame)
 			}
 		}
 		if !l.store.IsBlacklisted(remoteAddr.IP.String()) {
@@ -200,26 +179,86 @@ func (l *KPQ3Listener) handlePacket(conn *net.UDPConn, packet []byte, remoteAddr
 	}
 }
 
+func resolveIDTech3Game(candidate, defaultGame string) string {
+	switch candidate {
+	case "kingpinq3-1":
+		return "kingpin"
+	case "darkplaces":
+		if defaultGame == "xonotic" {
+			return "xonotic"
+		}
+		return "kingpin"
+	case "quakearena-1", "q3a", "quake3arena":
+		return "quake3"
+	case "wolf-1", "wolfmp":
+		return "rtcw"
+	case "et-1", "enemyterritory", "wolfet":
+		return "et"
+	case "cod-1":
+		return "cod"
+	case "coduo-1":
+		return "coduo"
+	case "cod2-1":
+		return "cod2"
+	case "cod4-1":
+		return "cod4"
+	case "jk2-1", "jedioutcast":
+		return "jk2"
+	case "jka-1", "jediacademy":
+		return "jka"
+	case "sof2-1", "sof2mp-1":
+		return "sof2"
+	case "ef-1", "stvef-1":
+		return "eliteforce"
+	default:
+		return candidate
+	}
+}
+
 func (l *KPQ3Listener) sendQ3ServerList(conn *net.UDPConn, remoteAddr *net.UDPAddr, gamename string) {
 	servers := l.store.GetServersByGame(gamename)
 
-	var buf bytes.Buffer
-	// Quake 3 getserversResponse header: \xff\xff\xff\xffgetserversResponse\
-	buf.Write([]byte("\xff\xff\xff\xffgetserversResponse"))
-
+	// Filter to valid IPv4 servers
+	type addrEntry struct {
+		ip   net.IP
+		port uint16
+	}
+	valid := make([]addrEntry, 0, len(servers))
 	for _, srv := range servers {
 		ip := net.ParseIP(srv.IP).To4()
 		if ip == nil {
 			continue
 		}
-		buf.WriteByte('\\')
-		buf.Write(ip)
-
-		portBytes := make([]byte, 2)
-		binary.BigEndian.PutUint16(portBytes, uint16(srv.GamePort))
-		buf.Write(portBytes)
+		port := srv.GamePort
+		if port <= 0 {
+			port = srv.QueryPort
+		}
+		valid = append(valid, addrEntry{ip: ip, port: uint16(port)})
 	}
-	buf.Write([]byte("\\EOT"))
 
-	_, _ = conn.WriteToUDP(buf.Bytes(), remoteAddr)
+	if len(valid) == 0 {
+		_, _ = conn.WriteToUDP([]byte("\xff\xff\xff\xffgetserversResponse\\EOT"), remoteAddr)
+		return
+	}
+
+	// Send in MTU-safe chunks (<= 112 servers per UDP packet, ~810 bytes)
+	// so packets never fragment on the internet or exceed Quake 3's MAX_SERVERSPERPACKET (256).
+	for start := 0; start < len(valid); start += maxServersPerQ3Packet {
+		end := start + maxServersPerQ3Packet
+		if end > len(valid) {
+			end = len(valid)
+		}
+
+		var buf bytes.Buffer
+		buf.Write([]byte("\xff\xff\xff\xffgetserversResponse"))
+		for _, entry := range valid[start:end] {
+			buf.WriteByte('\\')
+			buf.Write(entry.ip)
+			var portBytes [2]byte
+			binary.BigEndian.PutUint16(portBytes[:], entry.port)
+			buf.Write(portBytes[:])
+		}
+		buf.Write([]byte("\\EOT"))
+		_, _ = conn.WriteToUDP(buf.Bytes(), remoteAddr)
+	}
 }

@@ -91,6 +91,10 @@ func main() {
 		}
 	}
 
+	if loaded, err := store.LoadEmbeddedSeed(); err == nil && loaded > 0 {
+		log.Printf("[Store] Loaded %d baseline servers from embedded seed archive", loaded)
+	}
+
 	if dbFile != "" {
 		loaded, err := store.LoadFromFile(dbFile)
 		if err != nil {
@@ -114,6 +118,7 @@ func main() {
 	serverSeeder := seeder.NewSeeder(store, gameReg, seedURLs, 10*time.Minute)
 	// When mirror seeding finishes or updates, rebuild snapshot and persist DB
 	serverSeeder.SetOnSyncComplete(func() {
+		_, _ = store.LoadEmbeddedSeed()
 		log.Printf("[Seeder] Mirror sync complete (%d total registered servers). Rebuilding snapshot...", store.TotalCount())
 		store.RebuildSnapshot()
 		if dbFile != "" {
